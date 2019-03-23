@@ -1,15 +1,18 @@
 import PySimpleGUI as sg
 from constants import signals, allFields
 from validators import validate_input
+import re
 import plotly.offline as py
 import plotly.graph_objs as go
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(15, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
 layout = [
-        [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", default_value='sin')],
-        *inputFields,
-        [sg.Button('Generate signal')]
+        [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", default_value='sin', readonly=True)],
+        *inputFields, 
+        [sg.Button('Generate signal')],
+        [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs")],
+        [sg.Button('Remove signal/s', key='removeSignal')],
 ]
 
 def onSignalTypeChange(window, signalType, prevSignalType):
@@ -38,8 +41,6 @@ def onGenerateSignal(window, values):
     param_values['n'] = param_values['d'] * param_values['fp']
     del param_values['fp']
 
-    print(param_values)
-    
     xSet, ySet = signals[signalType]['fn'](**param_values)
  
     # Create a trace
@@ -49,5 +50,28 @@ def onGenerateSignal(window, values):
     )
  
     data = [trace]
- 
-    py.plot(data, filename='basic-line')
+    # py.plot(data, filename='basic-line')
+
+    return { 'type':signalType, 'x': xSet, 'y':ySet, 'params': param_values }
+
+def addToSelectionList(window, newSignal, storedSignals):
+      storedSignals.append(newSignal)
+      selectionList = window.FindElement('selectedGraphs')
+      currentState = selectionList.GetListValues()
+      currentState.append(f"{len(currentState)}. {newSignal['type']} {newSignal['params']}")
+      selectionList.Update(currentState)
+
+def removeFromSelectionList(window, selectedToRemove, storedSignals):
+      selectionList = window.FindElement('selectedGraphs')
+      alreadyRemoved = 0
+      for x in selectedToRemove:
+          number = int(re.search(r'\d+', x).group())
+          storedSignals.pop(number-alreadyRemoved)
+          alreadyRemoved += 1
+
+      currentList = []
+      for i in range(len(storedSignals)):
+        currentList.append(f"{i}. {storedSignals[i]['type']} {storedSignals[i]['params']}")
+
+      selectionList.Update(currentList)
+    
