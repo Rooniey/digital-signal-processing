@@ -5,10 +5,10 @@ import re
 import plotly.offline as py
 import plotly.graph_objs as go
 
-inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(15, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
+inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
 layout = [
-        [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", default_value='sin', readonly=True)],
+        [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", readonly=True)],
         *inputFields,
         [sg.Button('Generate signal')],
         [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs")],
@@ -20,6 +20,13 @@ layout = [
             sg.FileSaveAs('Write file', target='saveFile', change_submits=True, file_types=['json']),
         ]
 ]
+
+def initialize_inputs(window, initialSignalType):
+    initialSignal = signals[initialSignalType]
+    window.FindElement('signalType').Update(value = initialSignalType)
+    for field in allFields:
+        if field not in initialSignal['fields']:
+            window.FindElement(field).Update(disabled=True)
 
 def onSignalTypeChange(window, signalType, prevSignalType):
     used = signals[signalType]['fields']  
