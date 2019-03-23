@@ -2,12 +2,14 @@ import PySimpleGUI as sg
 import gui
 
 window = sg.Window('New GUI').Layout(gui.layout)
+sg.SetOptions(button_color=sg.COLOR_SYSTEM_DEFAULT)
 prevState = 'sin'
 storedSignals = []
 
 while True:                 # Event Loop
   event, values = window.Read()
-  print(event, values)
+  print("XD")
+  print(f"{event} --- {values}")
   if event is None or event == 'Exit':  
       break  
   if event == 'signalType':  

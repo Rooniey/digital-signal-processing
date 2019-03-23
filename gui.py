@@ -9,10 +9,16 @@ inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(15, 1)), sg.InputT
 
 layout = [
         [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", default_value='sin', readonly=True)],
-        *inputFields, 
+        *inputFields,
         [sg.Button('Generate signal')],
         [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs")],
         [sg.Button('Remove signal/s', key='removeSignal')],
+        [
+            sg.Input(key='readFile', change_submits=True, visible=False),
+            sg.FileBrowse('Read file',  target="readFile", change_submits=True),
+            sg.Input(key='saveFile', change_submits=True, visible=False),
+            sg.FileSaveAs('Write file', target='saveFile', change_submits=True, file_types=['json']),
+        ]
 ]
 
 def onSignalTypeChange(window, signalType, prevSignalType):
