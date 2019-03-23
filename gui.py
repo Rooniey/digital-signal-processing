@@ -58,8 +58,7 @@ def onGenerateSignal(window, values, storedSignals):
         sg.Popup('Error!', err_msg)
         return
 
-    tupelek = generate_signal(signalType, param_values)
-    xSet, ySet = tupelek
+    xSet, ySet = generate_signal(signalType, param_values)
     del param_values['fp']
 
     # Create a trace
