@@ -4,7 +4,6 @@ certifi==2019.3.9
 chardet==3.0.4
 colorama==0.4.1
 decorator==4.3.2
-easygui==0.98.1
 idna==2.8
 ipython-genutils==0.2.0
 isort==4.3.14
