@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 from constants import signals, allFields
 from validators import validate_input
+from signalGenerator import generate_signal
 import re
 import plotly.offline as py
 import plotly.graph_objs as go
@@ -57,11 +58,10 @@ def onGenerateSignal(window, values, storedSignals):
         sg.Popup('Error!', err_msg)
         return
 
-    param_values['n'] = param_values['d'] * param_values['fp']
+    tupelek = generate_signal(signalType, param_values)
+    xSet, ySet = tupelek
     del param_values['fp']
 
-    xSet, ySet = signals[signalType]['fn'](**param_values)
- 
     # Create a trace
     trace = go.Scatter(
         x = xSet,
