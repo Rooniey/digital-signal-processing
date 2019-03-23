@@ -13,13 +13,15 @@ def try_parse_field(field):
         return try_int
     return try_float
 
-def validate_input(values, fields):
+def validate_input(fieldValues):
     err_msg = ""
-    for i in range(len(fields)):
-        stripped = values[i].strip().strip('"')
-        parsed = try_parse_field(fields[i])(stripped)
+    parsedValues = {}
+    for k, v in fieldValues.items():
+        stripped = v.strip().strip('"')
+        print(v, k)
+        parsedValues[k] = try_parse_field(k)(stripped)
         if stripped == "":
-            err_msg = err_msg + ('"%s" is a required field.\n\n' % fields[i])
-        elif parsed == None:
-            err_msg = err_msg + ('"%s": %s is not valid.\n\n' % (fields[i], values[i]))
-    return err_msg
+            err_msg = err_msg + ('"%s" is a required field.\n\n' % k)
+        elif parsedValues[k] == None:
+            err_msg = err_msg + ('"%s": %s is not valid.\n\n' % (k, v))
+    return (err_msg, parsedValues)

@@ -1,7 +1,8 @@
 import signalGenerators as sgen
 
-noise_fields = ['n', 'A', 't1', 'd']
-sin_fields = ['A', 't1', 'T', 'd', 'n']
+allFields = ['A', 't1', 'T', 'd', 'fp']
+noise_fields = ['A', 't1', 'd', 'fp']
+sin_fields = allFields
 
 signals={
     'uniform_noise': {
