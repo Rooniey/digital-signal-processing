@@ -25,4 +25,12 @@ while True:                 # Event Loop
         gui.saveFile(window, values, storedSignals)
     if event == 'readFile':
         gui.readFile(window, values, storedSignals)
+    if event == '+':
+        gui.onAddSignals(window, values, storedSignals)
+    if event == '—':
+        gui.onSubtractSignals(window, values, storedSignals)
+    if event == '*':
+        gui.onMultiplySignals(window, values, storedSignals)
+    if event == '/':
+        gui.onDivideSignals(window, values, storedSignals)
 window.Close()

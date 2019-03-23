@@ -7,6 +7,7 @@ import plotly.offline as py
 import plotly.graph_objs as go
 import json
 import pandas as pd
+import sys
 
 def getSelectedGraphIndex(x):
     return int(re.search(r'^\d+', x).group())
@@ -17,8 +18,8 @@ layout = [
         [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", readonly=True)],
         *inputFields,
         [sg.Button('Generate signal'), sg.Button('Show')],
-        [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs")],
-        [sg.Button('Remove signal/s', key='removeSignal')],
+        [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs"), sg.Button('Remove signal/s', key='removeSignal')],
+        [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/')],
         [
             sg.Input(key='readFile', change_submits=True, visible=False),
             sg.FileBrowse('Read file',  target="readFile", change_submits=True),
@@ -27,6 +28,74 @@ layout = [
             sg.Checkbox('Save to binary', key='saveToBin')
         ]
 ]
+
+def extractSignalsForOperation(values, storedSignals):
+    selectedGraphs = values['selectedGraphs']
+    if len(selectedGraphs) != 2:
+        sg.Popup('Error!', 'Select 2 graphs to add')
+        return (None, None)
+    return storedSignals[getSelectedGraphIndex(selectedGraphs[0])], storedSignals[getSelectedGraphIndex(selectedGraphs[1])]
+
+def onSubtractSignals(window, values, storedSignals):
+    first, second = extractSignalsForOperation(values, storedSignals)
+    if first == None: return
+
+    new_y = [a - b for a, b in zip(first['y'], second['y'])]
+    new_x = [x for x, _ in zip(first['x'], second['x'])]
+    newSignal = {
+        'type': f"{first['type']} - {second['type']}",
+        'x': new_x,
+        'y': new_y,
+        'params': {
+            'A': first['params']['A'] + first['params']['A'],
+        },
+    }
+    addToSelectionList(window, newSignal, storedSignals)
+
+def onAddSignals(window, values, storedSignals):
+    first, second = extractSignalsForOperation(values, storedSignals)
+
+    added_y = [a + b for a, b in zip(first['y'], second['y'])]
+    added_x = [x for x, _ in zip(first['x'], second['x'])]
+    newSignal = {
+        'type': f"{first['type']} + {second['type']}",
+        'x': added_x,
+        'y': added_y,
+        'params': {
+            'A': first['params']['A'] + first['params']['A'],
+        },
+    }
+    addToSelectionList(window, newSignal, storedSignals)
+
+def onMultiplySignals(window, values, storedSignals):
+    first, second = extractSignalsForOperation(values, storedSignals)
+
+    new_y = [a * b for a, b in zip(first['y'], second['y'])]
+    new_x = [x for x, _ in zip(first['x'], second['x'])]
+    newSignal = {
+        'type': f"{first['type']} * {second['type']}",
+        'x': new_x,
+        'y': new_y,
+        'params': {
+            'A': first['params']['A'] * first['params']['A'],
+        },
+    }
+    addToSelectionList(window, newSignal, storedSignals)
+
+def onDivideSignals(window, values, storedSignals):
+    first, second = extractSignalsForOperation(values, storedSignals)
+
+    new_y = [a / b if b != 0 else 0 for a, b in zip(first['y'], second['y'])]
+    new_x = [x for x, _ in zip(first['x'], second['x'])]
+    newSignal = {
+        'type': f"{first['type']} / {second['type']}",
+        'x': new_x,
+        'y': new_y,
+        'params': {
+            'A': 'unknown',
+        },
+    }
+    addToSelectionList(window, newSignal, storedSignals)
 
 def initialize_inputs(window, initialSignalType):
     initialSignal = signals[initialSignalType]
