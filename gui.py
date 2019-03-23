@@ -4,13 +4,18 @@ from validators import validate_input
 import re
 import plotly.offline as py
 import plotly.graph_objs as go
+import json
+import pandas as pd
+
+def getSelectedGraphIndex(x):
+    return int(re.search(r'^\d+', x).group())
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
 layout = [
         [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", readonly=True)],
         *inputFields,
-        [sg.Button('Generate signal')],
+        [sg.Button('Generate signal'), sg.Button('Show')],
         [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs")],
         [sg.Button('Remove signal/s', key='removeSignal')],
         [
@@ -18,6 +23,7 @@ layout = [
             sg.FileBrowse('Read file',  target="readFile", change_submits=True),
             sg.Input(key='saveFile', change_submits=True, visible=False),
             sg.FileSaveAs('Write file', target='saveFile', change_submits=True, file_types=['json']),
+            sg.Checkbox('Save to binary', key='saveToBin')
         ]
 ]
 
@@ -41,7 +47,7 @@ def onSignalTypeChange(window, signalType, prevSignalType):
 
     return signalType
 
-def onGenerateSignal(window, values):
+def onGenerateSignal(window, values, storedSignals):
     signalType = values["signalType"]
     inputFields = signals[signalType]["fields"]
     inputValues = {k:v for k,v in  values.items() if k in inputFields}
@@ -65,7 +71,16 @@ def onGenerateSignal(window, values):
     data = [trace]
     # py.plot(data, filename='basic-line')
 
-    return { 'type':signalType, 'x': xSet, 'y':ySet, 'params': param_values }
+    newSignal = { 'type':signalType, 'x': xSet, 'y':ySet, 'params': param_values }
+    addToSelectionList(window, newSignal, storedSignals)
+
+def onShowGraph(window, values, storedSignals):
+    selectedGraphs = values["selectedGraphs"]
+    data = []
+    for x in selectedGraphs:
+        graph = storedSignals[getSelectedGraphIndex(x)]
+        data.append(go.Scatter(x=graph['x'], y=graph['y']))
+    py.plot(data, filename='graph')
 
 def addToSelectionList(window, newSignal, storedSignals):
       storedSignals.append(newSignal)
@@ -78,7 +93,7 @@ def removeFromSelectionList(window, selectedToRemove, storedSignals):
       selectionList = window.FindElement('selectedGraphs')
       alreadyRemoved = 0
       for x in selectedToRemove:
-          number = int(re.search(r'\d+', x).group())
+          number = getSelectedGraphIndex(x)
           storedSignals.pop(number-alreadyRemoved)
           alreadyRemoved += 1
 
@@ -88,3 +103,54 @@ def removeFromSelectionList(window, selectedToRemove, storedSignals):
 
       selectionList.Update(currentList)
     
+def saveFile(window, values, storedSignals):
+    selected = values["selectedGraphs"]
+    fileName = values['saveFile']
+    saveToBin = values['saveToBin']
+    if len(selected) != 1:
+        sg.Popup("Error!", "You have to select 1 signal to save.")
+    signalToSave = storedSignals[getSelectedGraphIndex(selected[0])]
+
+    openMode = 'w'
+    if saveToBin:
+        fileName = f"{fileName}.bin"
+        openMode = 'wb'
+    else :
+        fileName = f"{fileName}.txt"
+
+    with open(fileName, openMode) as f:
+        # dumped = json.dumps(signalToSave)
+        dumped = pd.Series(signalToSave).to_json(orient='values')
+        if saveToBin:
+            f.write(dumped.encode('utf-8'))
+        else:
+            f.write(dumped)
+
+def readFile(window, values, storedSignals):
+    fileName = values['readFile']
+    extension = fileName.split('.')[-1]
+
+    openMode = ''
+    isBinary = False
+    if extension == 'bin':
+        openMode = 'rb'
+        isBinary = True
+    elif extension == 'txt':
+        openMode = 'r'
+    else:
+        sg.Popup('Error!', 'select correct file for deserialization')
+        return
+
+    with open(fileName, openMode) as f:
+        readData = f.read()
+        if isBinary:
+            readData = readData.decode('utf-8')
+        series = pd.read_json(readData, orient='values')[0]
+
+        signal = series[0]
+        x_values = series[1]
+        y_values = series[2]
+        param_values = series[3]
+        print(f"s={signal}\nx={x_values}\ny={y_values}\nps={param_values}")
+        newSignal = { 'type':signal, 'x': x_values, 'y':y_values, 'params': param_values }
+        addToSelectionList(window, newSignal, storedSignals)
