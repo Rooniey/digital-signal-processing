@@ -128,7 +128,6 @@ def onGenerateSignal(window, values, storedSignals):
         return
 
     xSet, ySet = generate_signal(signalType, param_values)
-    del param_values['fp']
 
     # Create a trace
     trace = go.Scatter(
