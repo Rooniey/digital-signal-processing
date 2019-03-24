@@ -17,8 +17,19 @@ inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputTe
 layout = [
         [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", readonly=True)],
         *inputFields,
-        [sg.Button('Generate signal'), sg.Button('Show')],
-        [sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs"), sg.Button('Remove signal/s', key='removeSignal')],
+        [
+            sg.Button('Generate signal'), 
+            sg.Button('Show'), 
+        ],
+        [
+            sg.Button('Histogram'),
+            sg.Text('Ranges count: '),
+            sg.Slider(range=(5,20), default_value=15, size=(10,10), orientation='horizontal', font=('Helvetica', 7), key="ranges")
+        ],
+        [
+            sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs"), 
+            sg.Button('Remove signal/s', key='removeSignal'), 
+        ],
         [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/')],
         [
             sg.Input(key='readFile', change_submits=True, visible=False),
@@ -147,6 +158,21 @@ def onShowGraph(window, values, storedSignals):
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
         data.append(go.Scatter(x=graph['x'], y=graph['y']))
+    py.plot(data, filename='graph')
+
+def onShowHistogram(window, values, storedSignals):
+    selectedGraphs = values["selectedGraphs"]
+    ranges = int(values['ranges'])
+    data = []
+    for x in selectedGraphs:
+        graph = storedSignals[getSelectedGraphIndex(x)]
+        print(f"min {min(graph['y'])}  max {max(graph['y'])} size {(max(graph['y']) - min(graph['y'])) / ranges}")
+        data.append(go.Histogram(
+            x=graph['y'],
+            xbins={
+                'size': (max(graph['y']) - min(graph['y'])) / (ranges - 1)
+            },
+        ))
     py.plot(data, filename='graph')
 
 def addToSelectionList(window, newSignal, storedSignals):

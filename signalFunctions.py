@@ -10,9 +10,9 @@ def uniform_noise(x_values, params):
     
 def gaussian_noise(x_values, params):
     A, n = pluck(params, 'A', 'n')
-    y_values = list(map(lambda v: 2*A*v - A, np.random.randn(n)))
+    y_values = np.random.normal(0, 2*A, n)
     return [x_values, y_values]
-    
+
 def sin(x_values, params):
     A, t1, T = pluck(params,'A', 't1', 'T')
     y_values = list(map(lambda t: A*sin_helper(t, t1, T), x_values))
