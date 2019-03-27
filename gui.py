@@ -1,16 +1,15 @@
 import PySimpleGUI as sg
-from constants import signals, allFields
-from validators import validate_input
-from signalGenerator import generate_signal
-import re
 import plotly.offline as py
 import plotly.graph_objs as go
 import json
 import pandas as pd
-import sys
 
-def getSelectedGraphIndex(x):
-    return int(re.search(r'^\d+', x).group())
+import operations as ops
+import fileOperations as fileOps 
+from constants import signals, allFields
+from helpers import getSelectedGraphIndex
+from validators import validate_input
+from signalGenerator import generate_signal
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
@@ -35,77 +34,33 @@ layout = [
             sg.Input(key='readFile', change_submits=True, visible=False),
             sg.FileBrowse('Read file',  target="readFile", change_submits=True),
             sg.Input(key='saveFile', change_submits=True, visible=False),
-            sg.FileSaveAs('Write file', target='saveFile', change_submits=True, file_types=['json']),
+            sg.FileSaveAs('Write file', target='saveFile', change_submits=True, file_types=(("Text files", "*.txt"),("Binary files", "*.bin"))),
             sg.Checkbox('Save to binary', key='saveToBin')
         ]
 ]
 
-def extractSignalsForOperation(values, storedSignals):
-    selectedGraphs = values['selectedGraphs']
-    if len(selectedGraphs) != 2:
-        sg.Popup('Error!', 'Select 2 graphs to add')
-        return (None, None)
-    return storedSignals[getSelectedGraphIndex(selectedGraphs[0])], storedSignals[getSelectedGraphIndex(selectedGraphs[1])]
-
 def onSubtractSignals(window, values, storedSignals):
-    first, second = extractSignalsForOperation(values, storedSignals)
+    first, second = ops.extractSignalsForOperation(values, storedSignals)
     if first == None: return
-
-    new_y = [a - b for a, b in zip(first['y'], second['y'])]
-    new_x = [x for x, _ in zip(first['x'], second['x'])]
-    newSignal = {
-        'type': f"{first['type']} - {second['type']}",
-        'x': new_x,
-        'y': new_y,
-        'params': {
-            'A': first['params']['A'] + first['params']['A'],
-        },
-    }
+    newSignal = ops.applyOperation("-", first, second)
     addToSelectionList(window, newSignal, storedSignals)
 
 def onAddSignals(window, values, storedSignals):
-    first, second = extractSignalsForOperation(values, storedSignals)
-
-    added_y = [a + b for a, b in zip(first['y'], second['y'])]
-    added_x = [x for x, _ in zip(first['x'], second['x'])]
-    newSignal = {
-        'type': f"{first['type']} + {second['type']}",
-        'x': added_x,
-        'y': added_y,
-        'params': {
-            'A': first['params']['A'] + first['params']['A'],
-        },
-    }
+    first, second = ops.extractSignalsForOperation(values, storedSignals)
+    if first == None: return
+    newSignal = ops.applyOperation("+", first, second)
     addToSelectionList(window, newSignal, storedSignals)
 
 def onMultiplySignals(window, values, storedSignals):
-    first, second = extractSignalsForOperation(values, storedSignals)
-
-    new_y = [a * b for a, b in zip(first['y'], second['y'])]
-    new_x = [x for x, _ in zip(first['x'], second['x'])]
-    newSignal = {
-        'type': f"{first['type']} * {second['type']}",
-        'x': new_x,
-        'y': new_y,
-        'params': {
-            'A': first['params']['A'] * first['params']['A'],
-        },
-    }
+    first, second = ops.extractSignalsForOperation(values, storedSignals)
+    if first == None: return
+    newSignal = ops.applyOperation("*", first, second)
     addToSelectionList(window, newSignal, storedSignals)
 
 def onDivideSignals(window, values, storedSignals):
-    first, second = extractSignalsForOperation(values, storedSignals)
-
-    new_y = [a / b if b != 0 else 0 for a, b in zip(first['y'], second['y'])]
-    new_x = [x for x, _ in zip(first['x'], second['x'])]
-    newSignal = {
-        'type': f"{first['type']} / {second['type']}",
-        'x': new_x,
-        'y': new_y,
-        'params': {
-            'A': 'unknown',
-        },
-    }
+    first, second = ops.extractSignalsForOperation(values, storedSignals)
+    if first == None: return
+    newSignal = ops.applyOperation("/", first, second)
     addToSelectionList(window, newSignal, storedSignals)
 
 def initialize_inputs(window, initialSignalType):
@@ -132,7 +87,6 @@ def onGenerateSignal(window, values, storedSignals):
     signalType = values["signalType"]
     inputFields = signals[signalType]["fields"]
     inputValues = {k:v for k,v in  values.items() if k in inputFields}
-    print(inputValues)
     err_msg, param_values = validate_input(inputValues)
     if err_msg != "":
         sg.Popup('Error!', err_msg)
@@ -140,16 +94,22 @@ def onGenerateSignal(window, values, storedSignals):
 
     xSet, ySet = generate_signal(signalType, param_values)
 
-    # Create a trace
     trace = go.Scatter(
         x = xSet,
         y = ySet
     )
  
     data = [trace]
-    # py.plot(data, filename='basic-line')
 
-    newSignal = { 'type':signalType, 'x': xSet, 'y':ySet, 'params': param_values }
+    newSignal = { 
+        'name':signalType, 
+        'isDiscrete': signals[signalType]['isDiscrete'],
+        'isPeriodic': signals[signalType]['isPeriodic'],
+        'isComplex': False,
+        'x': xSet, 
+        'y': ySet, 
+        'params': param_values 
+    }
     addToSelectionList(window, newSignal, storedSignals)
 
 def onShowGraph(window, values, storedSignals):
@@ -157,6 +117,7 @@ def onShowGraph(window, values, storedSignals):
     data = []
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
+        print(len(graph['x']))
         data.append(go.Scatter(x=graph['x'], y=graph['y']))
     py.plot(data, filename='graph')
 
@@ -166,7 +127,6 @@ def onShowHistogram(window, values, storedSignals):
     data = []
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
-        print(f"min {min(graph['y'])}  max {max(graph['y'])} size {(max(graph['y']) - min(graph['y'])) / ranges}")
         data.append(go.Histogram(
             x=graph['y'],
             xbins={
@@ -179,7 +139,7 @@ def addToSelectionList(window, newSignal, storedSignals):
       storedSignals.append(newSignal)
       selectionList = window.FindElement('selectedGraphs')
       currentState = selectionList.GetListValues()
-      currentState.append(f"{len(currentState)}. {newSignal['type']} {newSignal['params']}")
+      currentState.append(f"{len(currentState)}. {newSignal['name']} {newSignal['params']}")
       selectionList.Update(currentState)
 
 def removeFromSelectionList(window, selectedToRemove, storedSignals):
@@ -204,46 +164,11 @@ def saveFile(window, values, storedSignals):
         sg.Popup("Error!", "You have to select 1 signal to save.")
     signalToSave = storedSignals[getSelectedGraphIndex(selected[0])]
 
-    openMode = 'w'
-    if saveToBin:
-        fileName = f"{fileName}.bin"
-        openMode = 'wb'
-    else :
-        fileName = f"{fileName}.txt"
-
-    with open(fileName, openMode) as f:
-        # dumped = json.dumps(signalToSave)
-        dumped = pd.Series(signalToSave).to_json(orient='values')
-        if saveToBin:
-            f.write(dumped.encode('utf-8'))
-        else:
-            f.write(dumped)
+    fileOps.saveFile(signalToSave, fileName, saveToBin)
 
 def readFile(window, values, storedSignals):
     fileName = values['readFile']
-    extension = fileName.split('.')[-1]
+    signal = fileOps.readFile(fileName)
+    addToSelectionList(window, signal, storedSignals)
 
-    openMode = ''
-    isBinary = False
-    if extension == 'bin':
-        openMode = 'rb'
-        isBinary = True
-    elif extension == 'txt':
-        openMode = 'r'
-    else:
-        sg.Popup('Error!', 'select correct file for deserialization')
-        return
-
-    with open(fileName, openMode) as f:
-        readData = f.read()
-        if isBinary:
-            readData = readData.decode('utf-8')
-        series = pd.read_json(readData, orient='values')[0]
-
-        signal = series[0]
-        x_values = series[1]
-        y_values = series[2]
-        param_values = series[3]
-        print(f"s={signal}\nx={x_values}\ny={y_values}\nps={param_values}")
-        newSignal = { 'type':signal, 'x': x_values, 'y':y_values, 'params': param_values }
-        addToSelectionList(window, newSignal, storedSignals)
+   
