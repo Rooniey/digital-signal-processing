@@ -19,6 +19,8 @@ while True:                 # Event Loop
         gui.onGenerateSignal(window, values, storedSignals)
     if event == 'Show':
         gui.onShowGraph(window, values, storedSignals)
+    if event == 'SignalProperties':
+        gui.onSignalProperties(window, values["selectedGraphs"], storedSignals)
     if event == 'Histogram':
         gui.onShowHistogram(window, values, storedSignals)
     if event == 'removeSignal':

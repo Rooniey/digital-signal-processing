@@ -5,6 +5,9 @@ import numpy as np
 n = 1000
 fp = 1000
 
+def calculateStatistics():
+    return NONE
+
 def computeIntegral(signal):
     params = signal["params"]
     t1 = params["t1"]

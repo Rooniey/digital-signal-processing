@@ -5,6 +5,8 @@ import json
 import pandas as pd
 
 import operations as ops
+from statistics import calculateProperties
+from helpers import getSelectedGraphIndex
 import fileOperations as fileOps 
 from constants import signals, allFields
 from helpers import getSelectedGraphIndex
@@ -23,7 +25,8 @@ layout = [
         [
             sg.Button('Histogram'),
             sg.Text('Ranges count: '),
-            sg.Slider(range=(5,20), default_value=15, size=(10,10), orientation='horizontal', font=('Helvetica', 7), key="ranges")
+            sg.Slider(range=(5,20), default_value=15, size=(10,10), orientation='horizontal', font=('Helvetica', 7), key="ranges"),
+            sg.Button('SignalProperties'),
         ],
         [
             sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs"), 
@@ -38,6 +41,14 @@ layout = [
             sg.Checkbox('Save to binary', key='saveToBin')
         ]
 ]
+
+def onSignalProperties(window, selectedSignals, storedSignals):
+    if(len(selectedSignals) != 1):
+        sg.Popup('Error!', "Select single signal")
+    else:
+        selectedSignal = getSelectedGraphIndex(selectedSignals[0])
+        data = calculateProperties(selectedSignal)
+        sg.Popup('Properties!', data)
 
 def onSubtractSignals(window, values, storedSignals):
     first, second = ops.extractSignalsForOperation(values, storedSignals)
