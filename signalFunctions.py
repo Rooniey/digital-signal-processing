@@ -47,7 +47,17 @@ def unit_step(x_values, params):
     A, ts = pluck(params,'A', 'ts')
     y_values = list(map(lambda t: unit_step_helper(t, A, ts), x_values))
     return [x_values, y_values]
-  
+
+def unit_impulse(x_values, params):
+    A, ts = pluck(params, 'A', 'ts')
+    y_values = list(map(lambda v: A if v == ts else 0, x_values))
+    return [x_values, y_values]
+
+def impulse_noise(x_values, params):
+    A, p = pluck(params, 'A', 'p')
+    y_values = [A if np.random.rand() < p else 0 for x in range(len(x_values))]
+    return [x_values, y_values]
+
 def sin_helper(t, t1, T):
     return math.sin((2*math.pi/T)*(t - t1))
 

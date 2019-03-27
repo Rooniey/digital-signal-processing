@@ -1,10 +1,12 @@
 import signalFunctions as sgen
 
-allFields = ['A', 't1', 'T', 'd', 'kw', 'fp', 'ts']
+allFields = ['A', 't1', 'T', 'd', 'kw', 'fp', 'ts', 'p']
 noise_fields = ['A', 't1', 'd', 'fp']
 rectangular_fields = ['A', 'T', 't1', 'd', 'kw', 'fp']
 unit_step = ['A', 't1', 'd', 'ts', 'fp']
 sin_fields = ['A', 't1', 'T', 'd', 'fp']
+unit_impulse = ['A', 't1', 'd', 'fp', 'ts']
+impulse_noise = ['A', 't1', 'd', 'fp', 'p']
 
 signals={
     'uniform_noise': {
@@ -60,5 +62,17 @@ signals={
         'fields': rectangular_fields,
         'isDiscrete': False,
         'isPeriodic': True
+    },
+    'unit_impulse': {
+        'fn': sgen.unit_impulse,
+        'fields': unit_impulse,
+        'isDiscrete': True,
+        'isPeriodic': False,
+    },
+    'impulse_noise': {
+        'fn': sgen.impulse_noise,
+        'fields': impulse_noise,
+        'isDiscrete': True,
+        'isPeriodic': False,
     }
 }

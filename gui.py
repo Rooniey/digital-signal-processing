@@ -129,7 +129,11 @@ def onShowGraph(window, values, storedSignals):
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
         print(len(graph['x']))
-        data.append(go.Scatter(x=graph['x'], y=graph['y']))
+        data.append(go.Scatter(
+            x=graph['x'],
+            y=graph['y'],
+            mode="markers" if graph['isDiscrete'] else 'line'
+        ))
     py.plot(data, filename='graph')
 
 def onShowHistogram(window, values, storedSignals):
