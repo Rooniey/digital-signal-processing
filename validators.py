@@ -18,7 +18,6 @@ def validate_input(fieldValues):
     parsedValues = {}
     for k, v in fieldValues.items():
         stripped = v.strip().strip('"')
-        print(v, k)
         parsedValues[k] = try_parse_field(k)(stripped)
         if stripped == "":
             err_msg = err_msg + ('"%s" is a required field.\n\n' % k)

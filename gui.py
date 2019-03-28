@@ -5,7 +5,7 @@ import json
 import pandas as pd
 
 import operations as ops
-from statistics import calculateProperties
+from statistics import calculateStatistics
 from helpers import getSelectedGraphIndex
 import fileOperations as fileOps 
 from constants import signals, allFields
@@ -46,33 +46,37 @@ def onSignalProperties(window, selectedSignals, storedSignals):
     if(len(selectedSignals) != 1):
         sg.Popup('Error!', "Select single signal")
     else:
-        selectedSignal = getSelectedGraphIndex(selectedSignals[0])
-        data = calculateProperties(selectedSignal)
+        selectedSignal = storedSignals[getSelectedGraphIndex(selectedSignals[0])]
+        data = calculateStatistics(selectedSignal)
         sg.Popup('Properties!', data)
 
 def onSubtractSignals(window, values, storedSignals):
     first, second = ops.extractSignalsForOperation(values, storedSignals)
     if first == None: return
     newSignal = ops.applyOperation("-", first, second)
-    addToSelectionList(window, newSignal, storedSignals)
+    if(newSignal != None):
+        addToSelectionList(window, newSignal, storedSignals)
 
 def onAddSignals(window, values, storedSignals):
     first, second = ops.extractSignalsForOperation(values, storedSignals)
     if first == None: return
     newSignal = ops.applyOperation("+", first, second)
-    addToSelectionList(window, newSignal, storedSignals)
+    if(newSignal != None):
+        addToSelectionList(window, newSignal, storedSignals)
 
 def onMultiplySignals(window, values, storedSignals):
     first, second = ops.extractSignalsForOperation(values, storedSignals)
     if first == None: return
     newSignal = ops.applyOperation("*", first, second)
-    addToSelectionList(window, newSignal, storedSignals)
+    if(newSignal != None):
+        addToSelectionList(window, newSignal, storedSignals)
 
 def onDivideSignals(window, values, storedSignals):
     first, second = ops.extractSignalsForOperation(values, storedSignals)
     if first == None: return
     newSignal = ops.applyOperation("/", first, second)
-    addToSelectionList(window, newSignal, storedSignals)
+    if(newSignal != None):
+        addToSelectionList(window, newSignal, storedSignals)
 
 def initialize_inputs(window, initialSignalType):
     initialSignal = signals[initialSignalType]
@@ -124,19 +128,61 @@ def onGenerateSignal(window, values, storedSignals):
     addToSelectionList(window, newSignal, storedSignals)
 
 def onShowGraph(window, values, storedSignals):
+    if(len(values['selectedGraphs']) == 0):
+        sg.Popup('Error!', "Select at least one signal")
+        return
     selectedGraphs = values["selectedGraphs"]
     data = []
+    layout = go.Layout(
+        xaxis=dict(
+            title='t[s]',
+            titlefont=dict(
+                family='Arial, sans-serif',
+                size=18,
+                color='lightgrey'
+            ),
+            showticklabels=True,
+            tickfont=dict(
+                family='Old Standard TT, serif',
+                size=14,
+                color='black'
+            ),
+            exponentformat='e',
+            showexponent='all'
+        ),
+        yaxis=dict(
+            title='A[m]',
+            titlefont=dict(
+                family='Arial, sans-serif',
+                size=18,
+                color='lightgrey'
+            ),
+            showticklabels=True,
+            tickfont=dict(
+                family='Old Standard TT, serif',
+                size=14,
+                color='black'
+            ),
+            exponentformat='e',
+            showexponent='all'
+        )
+    )
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
-        print(len(graph['x']))
         data.append(go.Scatter(
             x=graph['x'],
             y=graph['y'],
-            mode="markers" if graph['isDiscrete'] else 'line'
+            mode="markers" if graph['isDiscrete'] else 'lines',
         ))
-    py.plot(data, filename='graph')
+
+    figure = go.Figure(data=data, layout=layout)
+    
+    py.plot(figure, filename='graph')
 
 def onShowHistogram(window, values, storedSignals):
+    if(len(values['selectedGraphs']) == 0):
+        sg.Popup('Error!', "Select at least one signal")
+        return
     selectedGraphs = values["selectedGraphs"]
     ranges = int(values['ranges'])
     data = []
