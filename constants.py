@@ -12,13 +12,13 @@ signals={
     'uniform_noise': {
         'fn': sgen.uniform_noise,
         'fields': noise_fields,
-        'isDiscrete': False,
+        'isDiscrete': True,
         'isPeriodic': False
     },
     'gaussian_noise': {
         'fn': sgen.gaussian_noise,
         'fields': noise_fields,
-        'isDiscrete': False,
+        'isDiscrete': True,
         'isPeriodic': False
     },
     'sin': {

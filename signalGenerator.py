@@ -7,4 +7,5 @@ def generate_signal(signalType, param_values):
     n = int(d * fp)
     param_values['n'] = n
     x_values = np.linspace(t1, t1+d, n + 1)
-    return signals[signalType]['fn'](x_values, param_values)
+    y_values = signals[signalType]['fn'](x_values, param_values)
+    return [x_values, y_values]

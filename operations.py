@@ -4,7 +4,6 @@ import PySimpleGUI as sg
 import numpy as np
 from helpers import getSelectedGraphIndex
 
-
 def extractSignalsForOperation(values, storedSignals):
     selectedGraphs = values['selectedGraphs']
     if len(selectedGraphs) != 2:
@@ -13,7 +12,6 @@ def extractSignalsForOperation(values, storedSignals):
     return storedSignals[getSelectedGraphIndex(selectedGraphs[0])], storedSignals[getSelectedGraphIndex(selectedGraphs[1])]
 
 def applyOperation(operation, first, second):
-    result = None
     ft1, ffp = pluck(first['params'], 't1', 'fp')
     st1, sfp = pluck(second['params'], 't1', 'fp')
 
@@ -22,19 +20,14 @@ def applyOperation(operation, first, second):
         return None
         
     new_x = [x for x, _ in zip(first['x'], second['x'])]
-    if operation == "+":
-        result = addSignals(first['y'],second['y'])
-    elif operation == "-":
-        result = subtractSignals(first['y'],second['y'])
-    elif operation == "/":
-        result = divideSignals(first['y'],second['y'])
-    elif operation == "*":
-        result = multiplySignals(first['y'],second['y'])
+    new_y = applyOperationSimple(operation, first['y'], second['y'])
 
     params = second['params']
     isPeriodic = first['isPeriodic'] and second['isPeriodic']
     if isPeriodic:
-        params['T'] = first['params']['T'] * second['params']['T']
+        fT = first['params']['T']
+        sT = second['params']['T']
+        params['T'] = fT if fT == sT else fT*sT
         
     return  {
         'name': second['name'],
@@ -42,7 +35,7 @@ def applyOperation(operation, first, second):
         'isComplex': True,
         'isPeriodic': isPeriodic,
         'x': new_x,
-        'y': result,
+        'y': new_y,
         "params": second['params'],
         "operation": operation,
         "firstOperand": first,
@@ -60,42 +53,36 @@ def applyOperationSimple(operation, first, second):
         return multiplySignals(first,second)
 
 def computeSignal(signal, x_values):
-    print(f"signal in computeSignal: {signal}")
-    firstOperand, secondOperand = None, None
     if signal['isComplex'] == True:
-        operation = signal['operation']
-        firstOperand = signal['firstOperand']
-        secondOperand = signal['secondOperand']
+        operation, firstOperand, secondOperand = pluck(signal, 'operation', 'firstOperand', 'secondOperand')
         LsigVal, RsigVal = None, None
         if(firstOperand['isComplex']):
             LsigVal = computeSignal(firstOperand, x_values)
         else:
             sigName = firstOperand['name']
-            LsigVal = signals[sigName]['fn'](x_values, firstOperand['params'])[1]
+            LsigVal = signals[sigName]['fn'](x_values, firstOperand['params'])
         
         if(secondOperand['isComplex']):
             RsigVal = computeSignal(secondOperand, x_values)
         else:
             sigName = secondOperand['name']
-            RsigVal = signals[sigName]['fn'](x_values, secondOperand['params'])[1]
+            RsigVal = signals[sigName]['fn'](x_values, secondOperand['params'])
 
         return applyOperationSimple(operation, LsigVal, RsigVal)
     else:
         sigName = signal['name']
-        return signals[sigName]['fn'](x_values, signal['params'])[1]
+        return signals[sigName]['fn'](x_values, signal['params'])
     
+# Operation on signals
+
 def subtractSignals(first, second):
-    new_y = [a - b for a, b in zip(first, second)]
-    return new_y
+    return [a - b for a, b in zip(first, second)]
 
 def addSignals(first, second):
-    new_y = [a + b for a, b in zip(first, second)]
-    return new_y
+    return [a + b for a, b in zip(first, second)]
 
 def multiplySignals(first, second):
-    new_y = [a * b for a, b in zip(first, second)]
-    return new_y
+    return [a * b for a, b in zip(first, second)]
 
 def divideSignals(first, second):
-    new_y = [a / b if b != 0 else 0 for a, b in zip(first, second)]
-    return new_y
+    return [a / b if b != 0 else 0 for a, b in zip(first, second)]

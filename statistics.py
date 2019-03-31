@@ -7,87 +7,72 @@ n = 1000
 fp = 1000
 
 def calculateStatistics(signal):
-    average = None 
-    averageAbsolute = None
-    averagePower = None 
-    valueVariance = None 
-    effectiveValue = None
+    stats = dict()
     if(signal['isDiscrete'] == True):
-        average = calculateAverageDiscrete(signal)
-        averageAbsolute = calculateAverageAbsoluteDiscrete(signal)
-        averagePower = calculateAveragePowerDiscrete(signal)
-        valueVariance = calculateValueVarianceDiscrete(signal, average)
-        effectiveValue = calculateEffectiveValueDiscrete(signal)
+
+        stats['average'] = averageDiscrete(signal)
+        stats['averageAbsolute'] = absoluteAverageDiscrete(signal)
+        stats['averagePower'] = averagePowerDiscrete(signal)
+        stats['standardDeviation'] = standardDeviationDiscrete(signal, stats['average'])
+        stats['effectiveValue'] = effectiveValueDiscrete(stats['averagePower'])
+
     else:
         t1, t2, x = prepareSignalForIntegral(signal)
         y = computeSignal(signal, x)
         coeff = 1 / (t2 - t1)
 
-        average = calculateAverageContinuous(coeff, x, y)
-        averageAbsolute = calculateAverageAbsoluteContinuous(coeff, x, y)
-        averagePower = calculateAveragePowerContinuous(coeff, x, y)
-        valueVariance = calculateValueVarianceContinuous(coeff, x, y, average)
-        effectiveValue = calculateEffectiveValueContinuous(averagePower)
+        stats['average'] = averageContinuous(coeff, x, y)
+        stats['averageAbsolute'] = absoluteAverageContinuous(coeff, x, y)
+        stats['averagePower'] = averagePowerContinuous(coeff, x, y)
+        stats['standardDeviation'] = standardDeviationContinuous(coeff, x, y, stats['average'])
+        stats['effectiveValue'] = effectiveValueContinuous(stats['averagePower'])
 
-    return {
-        'average': average,
-        'averageAbsolute': averageAbsolute,
-        'averagePower': averagePower,
-        'valueVariance': valueVariance,
-        'effectiveValue': effectiveValue
-    }
+    return stats
 
-def calculateAverageDiscrete(signal):
+# Statistics of discrete signals
+
+def averageDiscrete(signal):
     l = len(signal['y'])
     return sum(signal['y'])/l
 
-def calculateAverageAbsoluteDiscrete(signal):
+def absoluteAverageDiscrete(signal):
     l = len(signal['y'])
     return sum([abs(y) for y in signal['y']])/l
 
-def calculateAveragePowerDiscrete(signal):
+def averagePowerDiscrete(signal):
     l = len(signal['y'])
     return sum([y**2 for y in signal['y']])/l
 
-def calculateValueVarianceDiscrete(signal, averageValue):
+def standardDeviationDiscrete(signal, averageValue):
     l = len(signal['y'])
-    return sum([abs(y - averageValue)**2 for y in signal['y']])/l
+    return sum([(y - averageValue)**2 for y in signal['y']])/l
     
-def calculateEffectiveValueDiscrete(averagePower):
+def effectiveValueDiscrete(averagePower):
     return math.sqrt(averagePower)
 
-def calculateAverageContinuous(coeff, x, y):
+# Statistics of continuous signals
+
+def averageContinuous(coeff, x, y):
     return computeIntegral(x, y)*coeff
 
-def calculateAverageAbsoluteContinuous(coeff, x, y):
+def absoluteAverageContinuous(coeff, x, y):
     return computeIntegral(x, [abs(y) for y in y])*coeff  
     
-def calculateAveragePowerContinuous(coeff, x, y):
+def averagePowerContinuous(coeff, x, y):
     return computeIntegral(x, [y**2 for y in y])*coeff  
 
-def calculateValueVarianceContinuous(coeff, x, y, averageValue):
+def standardDeviationContinuous(coeff, x, y, averageValue):
     return computeIntegral(x, [(abs(y-averageValue))**2 for y in y])*coeff  
 
-def calculateEffectiveValueContinuous(averagePower):
+def effectiveValueContinuous(averagePower):
     return math.sqrt(averagePower)
 
 def computeIntegral(x, y):
-    h = x[1] - x[0]
-    # print('xxxx')
-    # print(h)
-    h = abs(h)
-    # print(h)
+    h = abs(x[1] - x[0])
     data = 0
-    # print('xxxx')
     for i, v in enumerate(y):
-        print(f"{i} - {v}")
-        # data += v if (i != 0 and i != len(y) - 1) else v*2
-        if (i == 0 or i == len(y) - 1):
-            data += v
-        else:
-            data += v*2
+        data += v if (i != 0 and i != len(y) - 1) else v*2
     return (h/2)*data
-
 
 def prepareSignalForIntegral(signal):
     params = signal["params"]

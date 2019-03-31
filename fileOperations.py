@@ -39,7 +39,7 @@ def readFile(fileName):
         openMode = 'r'
     else:
         sg.Popup('Error!', 'select correct file for deserialization')
-        return
+        return None
 
     with open(fileName, openMode) as f:
         readData = f.read()

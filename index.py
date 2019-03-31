@@ -9,19 +9,20 @@ window.Finalize()
 sg.SetOptions(button_color=sg.COLOR_SYSTEM_DEFAULT)
 gui.initialize_inputs(window, prevState)
 
-while True:                 # Event Loop
+ # Event Loop
+while True:                
     event, values = window.Read()
     if event is None or event == 'Exit':  
         break  
     if event == 'signalType':  
         prevState =  gui.onSignalTypeChange(window, values["signalType"], prevState)
-    if event == 'Generate signal':
+    if event == 'generateSignal':
         gui.onGenerateSignal(window, values, storedSignals)
-    if event == 'Show':
+    if event == 'showSignal':
         gui.onShowGraph(window, values, storedSignals)
-    if event == 'SignalProperties':
+    if event == 'showSignalProperties':
         gui.onSignalProperties(window, values["selectedGraphs"], storedSignals)
-    if event == 'Histogram':
+    if event == 'showHistogram':
         gui.onShowHistogram(window, values, storedSignals)
     if event == 'removeSignal':
         gui.removeFromSelectionList(window, values["selectedGraphs"], storedSignals)

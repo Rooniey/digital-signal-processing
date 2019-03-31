@@ -2,61 +2,55 @@ import numpy as np
 import math
 from utility import pluck
 
+# Continuous Signals
 
 def uniform_noise(x_values, params):
     A, n = pluck(params, 'A', 'n')
-    y_values = list(map(lambda v: 2*A*v - A, np.random.rand(n)))
-    return [x_values, y_values]
-    
+    return list(map(lambda v: 2*A*v - A, np.random.rand(n)))
+
 def gaussian_noise(x_values, params):
     A, n = pluck(params, 'A', 'n')
-    y_values = np.random.normal(0, 2*A, n)
-    return [x_values, y_values]
+    return np.random.normal(0, 2*A, n)
 
 def sin(x_values, params):
     A, t1, T = pluck(params,'A', 't1', 'T')
-    y_values = list(map(lambda t: A*sin_helper(t, t1, T), x_values))
-    return [x_values, y_values]
+    return list(map(lambda t: A*sin_helper(t, t1, T), x_values))
 
 def sin_half_rectified(x_values, params):
     A, t1, T = pluck(params,'A', 't1', 'T')
-    y_values = list(map(lambda t: 0.5*A*(sin_helper(t, t1, T) + abs(sin_helper(t, t1, T))), x_values))
-    return [x_values, y_values]
+    return list(map(lambda t: 0.5*A*(sin_helper(t, t1, T) + abs(sin_helper(t, t1, T))), x_values))
 
 def sin_full_rectified(x_values, params):
     A, t1, T = pluck(params,'A', 't1', 'T')
-    y_values = list(map(lambda t: A*abs(sin_helper(t, t1, T)), x_values))
-    return [x_values, y_values]
+    return list(map(lambda t: A*abs(sin_helper(t, t1, T)), x_values))
 
 def rectangular(x_values, params):
     A, t1, T, kw = pluck(params,'A', 't1', 'T', 'kw')
-    y_values = list(map(lambda t: 0 if rect_helper(t, t1, T, kw, A) == -1 else A, x_values))
-    return [x_values, y_values]
-
+    return list(map(lambda t: 0 if rect_helper(t, t1, T, kw, A) == -1 else A, x_values))
+    
 def rectangular_symmetrical(x_values, params):
     A, t1, T, kw = pluck(params,'A', 't1', 'T', 'kw')
-    y_values = list(map(lambda t: -A if rect_helper(t, t1, T, kw, A) == -1 else A, x_values))
-    return [x_values, y_values]
+    return list(map(lambda t: -A if rect_helper(t, t1, T, kw, A) == -1 else A, x_values))
 
 def sawtooth(x_values, params):
     A, t1, T, kw = pluck(params,'A', 't1', 'T', 'kw')
-    y_values = list(map(lambda t: sawtooth_helper(t, t1, T, kw, A), x_values))
-    return [x_values, y_values]
+    return list(map(lambda t: sawtooth_helper(t, t1, T, kw, A), x_values))
 
 def unit_step(x_values, params):
     A, ts = pluck(params,'A', 'ts')
-    y_values = list(map(lambda t: unit_step_helper(t, A, ts), x_values))
-    return [x_values, y_values]
+    return list(map(lambda t: unit_step_helper(t, A, ts), x_values))
+
+# Discrete Signals
 
 def unit_impulse(x_values, params):
     A, ts = pluck(params, 'A', 'ts')
-    y_values = list(map(lambda v: A if v == ts else 0, x_values))
-    return [x_values, y_values]
+    return list(map(lambda v: A if v == ts else 0, x_values))
 
 def impulse_noise(x_values, params):
     A, p = pluck(params, 'A', 'p')
-    y_values = [A if np.random.rand() < p else 0 for x in range(len(x_values))]
-    return [x_values, y_values]
+    return [A if np.random.rand() < p else 0 for x in range(len(x_values))]
+
+# Helper Functions
 
 def sin_helper(t, t1, T):
     return math.sin((2*math.pi/T)*(t - t1))

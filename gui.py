@@ -19,17 +19,17 @@ layout = [
         [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", readonly=True)],
         *inputFields,
         [
-            sg.Button('Generate signal'), 
-            sg.Button('Show'), 
+            sg.Button('Generate signal', key="generateSignal"), 
+            sg.Button('Show', key="showSignal"), 
         ],
         [
-            sg.Button('Histogram'),
+            sg.Button('Histogram', key="showHistogram"),
             sg.Text('Ranges count: '),
             sg.Slider(range=(5,20), default_value=15, size=(10,10), orientation='horizontal', font=('Helvetica', 7), key="ranges"),
-            sg.Button('SignalProperties'),
+            sg.Button('SignalProperties', key="showSignalProperties"),
         ],
         [
-            sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(50, 6), key="selectedGraphs"), 
+            sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(60, 10), key="selectedGraphs"), 
             sg.Button('Remove signal/s', key='removeSignal'), 
         ],
         [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/')],
@@ -48,7 +48,13 @@ def onSignalProperties(window, selectedSignals, storedSignals):
     else:
         selectedSignal = storedSignals[getSelectedGraphIndex(selectedSignals[0])]
         data = calculateStatistics(selectedSignal)
-        sg.Popup('Properties!', data)
+        sg.Popup('Signal properties', f"""
+        Average value: {data['average']}
+        Average absolute value: {data['averageAbsolute']}
+        Average power: {data['averagePower']}
+        Standard deviation: {data['standardDeviation']}
+        Effective value: {data['effectiveValue']}
+        """)
 
 def onSubtractSignals(window, values, storedSignals):
     first, second = ops.extractSignalsForOperation(values, storedSignals)
@@ -108,13 +114,6 @@ def onGenerateSignal(window, values, storedSignals):
         return
 
     xSet, ySet = generate_signal(signalType, param_values)
-
-    trace = go.Scatter(
-        x = xSet,
-        y = ySet
-    )
- 
-    data = [trace]
 
     newSignal = { 
         'name':signalType, 
@@ -180,8 +179,8 @@ def onShowGraph(window, values, storedSignals):
     py.plot(figure, filename='graph')
 
 def onShowHistogram(window, values, storedSignals):
-    if(len(values['selectedGraphs']) == 0):
-        sg.Popup('Error!', "Select at least one signal")
+    if(len(values['selectedGraphs']) != 1):
+        sg.Popup('Error!', "Select only one signal")
         return
     selectedGraphs = values["selectedGraphs"]
     ranges = int(values['ranges'])
@@ -202,6 +201,7 @@ def addToSelectionList(window, newSignal, storedSignals):
       currentState = selectionList.GetListValues()
       currentState.append(f"{len(currentState)}. {newSignal['name']} {newSignal['params']}")
       selectionList.Update(currentState)
+      selectionList.SetValue(values=[])
 
 def removeFromSelectionList(window, selectedToRemove, storedSignals):
       selectionList = window.FindElement('selectedGraphs')
@@ -213,7 +213,7 @@ def removeFromSelectionList(window, selectedToRemove, storedSignals):
 
       currentList = []
       for i in range(len(storedSignals)):
-        currentList.append(f"{i}. {storedSignals[i]['type']} {storedSignals[i]['params']}")
+        currentList.append(f"{i}. {storedSignals[i]['name']} {storedSignals[i]['params']}")
 
       selectionList.Update(currentList)
     
@@ -223,6 +223,7 @@ def saveFile(window, values, storedSignals):
     saveToBin = values['saveToBin']
     if len(selected) != 1:
         sg.Popup("Error!", "You have to select 1 signal to save.")
+        return
     signalToSave = storedSignals[getSelectedGraphIndex(selected[0])]
 
     fileOps.saveFile(signalToSave, fileName, saveToBin)
@@ -230,6 +231,8 @@ def saveFile(window, values, storedSignals):
 def readFile(window, values, storedSignals):
     fileName = values['readFile']
     signal = fileOps.readFile(fileName)
+    if(signal == None):
+        return
     addToSelectionList(window, signal, storedSignals)
 
    
