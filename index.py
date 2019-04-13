@@ -3,6 +3,7 @@ import gui
 
 prevState = 'sin'
 storedSignals = []
+# processedSignals = []
 
 window = sg.Window('New GUI').Layout(gui.layout)
 window.Finalize()
@@ -38,4 +39,10 @@ while True:
         gui.onMultiplySignals(window, values, storedSignals)
     if event == '/':
         gui.onDivideSignals(window, values, storedSignals)
+    if event == 'Sinc?':
+        gui.onChangeReconstructMethod(window, values)
+    if event == 'quantize':
+        gui.onQuantizeSignal(window, values, storedSignals)
+    if event == 'sample': 
+        gui.onSampleSignal(window, values, storedSignals)
 window.Close()

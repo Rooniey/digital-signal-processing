@@ -10,12 +10,14 @@ from helpers import getSelectedGraphIndex
 import fileOperations as fileOps 
 from constants import signals, allFields
 from helpers import getSelectedGraphIndex
-from validators import validate_input
+from validators import validate_input, try_int, try_float
 from signalGenerator import generate_signal
+from processing.quantization import quantize
+from processing.sampling import sample 
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
-layout = [
+column1 = sg.Column([
         [sg.InputCombo(values=list(signals.keys()), change_submits=True, key="signalType", readonly=True)],
         *inputFields,
         [
@@ -40,7 +42,52 @@ layout = [
             sg.FileSaveAs('Write file', target='saveFile', change_submits=True, file_types=(("Text files", "*.txt"),("Binary files", "*.bin"))),
             sg.Checkbox('Save to binary', key='saveToBin')
         ]
-]
+])
+
+column2 = sg.Column([
+    [sg.Button('Sample', key='sample', size=(10, 1)), sg.Text('Fp', size=(7, 1)), sg.Input(key='samplingFrequency', size=(10, 10), do_not_clear=True)],
+    [sg.Button('Quantize', key='quantize', size=(10, 1)), sg.Text('Levels', size=(7, 1)), sg.Input(key='quantizationSteps', size=(10, 10), do_not_clear=True)],
+    [sg.Button('Reconstruct', size=(10, 1)), sg.Text('Sinc pts', size=(7, 1)),  sg.Input(key='sincPts', size=(10, 10), do_not_clear=True), sg.Checkbox('Sinc?', enable_events=True, change_submits=True, key='Sinc?')],
+    [sg.Listbox(values=['asddsa', 'sdads'], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, size=(60, 10), key="processedSignals")]
+])
+
+layout = [[column1, column2]]
+
+def onQuantizeSignal(window, values, storedSignals):
+    selectedGraphs = values['selectedGraphs']
+    if len(selectedGraphs) != 1:
+        sg.Popup('Error!', 'Select 1 graph to quantize!')
+        return None
+
+    steps = try_int(values['quantizationSteps'])
+    if steps == None:
+        sg.Popup('Error!', 'Specify amount of quantization levels!')
+        return None
+    
+    selectedGraph =  storedSignals[getSelectedGraphIndex(selectedGraphs[0])]
+    quantized = quantize(selectedGraph, steps)
+
+    addToSelectionList(window, quantized, storedSignals)
+    
+def onSampleSignal(window, values, storedSignals):
+    selectedGraphs = values['selectedGraphs']
+    if len(selectedGraphs) != 1:
+        sg.Popup('Error!', 'Select 1 graph to quantize!')
+        return None
+
+    fp = try_float(values['samplingFrequency'])
+    if fp == None or fp == 0:
+        sg.Popup('Error!', 'Specify correct sampling frequency!')
+        return None
+
+    selectedGraph = storedSignals[getSelectedGraphIndex(selectedGraphs[0])]
+    sampled = sample(selectedGraph, fp)
+
+    addToSelectionList(window, sampled, storedSignals)
+
+def onChangeReconstructMethod(window, values):
+    sinc = values['Sinc?']
+    window.FindElement('sincPts').Update(disabled=not sinc, value='')
 
 def onSignalProperties(window, selectedSignals, storedSignals):
     if(len(selectedSignals) != 1):
@@ -116,7 +163,8 @@ def onGenerateSignal(window, values, storedSignals):
     xSet, ySet = generate_signal(signalType, param_values)
 
     newSignal = { 
-        'name':signalType, 
+        'name':signalType,
+        'displayName': signalType, 
         'isDiscrete': signals[signalType]['isDiscrete'],
         'isPeriodic': signals[signalType]['isPeriodic'],
         'isComplex': False,
@@ -199,7 +247,7 @@ def addToSelectionList(window, newSignal, storedSignals):
       storedSignals.append(newSignal)
       selectionList = window.FindElement('selectedGraphs')
       currentState = selectionList.GetListValues()
-      currentState.append(f"{len(currentState)}. {newSignal['name']} {newSignal['params']}")
+      currentState.append(f"{len(currentState)}. {newSignal['displayName']} {newSignal['params']}")
       selectionList.Update(currentState)
       selectionList.SetValue(values=[])
 
@@ -213,7 +261,7 @@ def removeFromSelectionList(window, selectedToRemove, storedSignals):
 
       currentList = []
       for i in range(len(storedSignals)):
-        currentList.append(f"{i}. {storedSignals[i]['name']} {storedSignals[i]['params']}")
+        currentList.append(f"{i}. {storedSignals[i]['displayName']} {storedSignals[i]['params']}")
 
       selectionList.Update(currentList)
     

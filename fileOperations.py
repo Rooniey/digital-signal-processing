@@ -48,7 +48,8 @@ def readFile(fileName):
         data = pd.read_json(readData, orient='values')
 
         return { 
-            'name': data["name"][0], 
+            'name': data["name"][0],
+            'displayName': data["name"][0],
             'isDiscrete': True,
             'isPeriodic': False,
             'isComplex': False,

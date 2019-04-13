@@ -31,6 +31,7 @@ def applyOperation(operation, first, second):
         
     return  {
         'name': second['name'],
+        'displayName': f"{first['displayName']}{operation}{second['displayName']}",
         'isDiscrete': (first['isDiscrete'] or second['isDiscrete']),
         'isComplex': True,
         'isPeriodic': isPeriodic,
