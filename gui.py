@@ -14,6 +14,7 @@ from validators import validate_input, try_int, try_float
 from signalGenerator import generate_signal
 from processing.quantization import quantize
 from processing.sampling import sample 
+from processing.conversion import reconstruct
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
@@ -47,11 +48,27 @@ column1 = sg.Column([
 column2 = sg.Column([
     [sg.Button('Sample', key='sample', size=(10, 1)), sg.Text('Fp', size=(7, 1)), sg.Input(key='samplingFrequency', size=(10, 10), do_not_clear=True)],
     [sg.Button('Quantize', key='quantize', size=(10, 1)), sg.Text('Levels', size=(7, 1)), sg.Input(key='quantizationSteps', size=(10, 10), do_not_clear=True)],
-    [sg.Button('Reconstruct', size=(10, 1)), sg.Text('Sinc pts', size=(7, 1)),  sg.Input(key='sincPts', size=(10, 10), do_not_clear=True), sg.Checkbox('Sinc?', enable_events=True, change_submits=True, key='Sinc?')],
-    [sg.Listbox(values=['asddsa', 'sdads'], select_mode=sg.LISTBOX_SELECT_MODE_SINGLE, size=(60, 10), key="processedSignals")]
+    [sg.Button('Reconstruct', size=(10, 1), key='reconstruct'), sg.Text('Fe', size=(7, 1)),  sg.Input(key='fe', size=(10, 10), do_not_clear=True), sg.Checkbox('Sinc?', enable_events=True, change_submits=True, key='Sinc?'), sg.Text('Neighbors', size=(7, 1)), sg.Input(key='sincNeighbors', size=(10, 10), do_not_clear=True)],
+    [sg.Button('Compute error parameters', key='computeErrors', size=(30,10), pad=(100,100))]
 ])
 
 layout = [[column1, column2]]
+
+def onComputeErrorParameters(window, values, storedSignals):
+    selectedGraphs = values['selectedGraphs']
+    if len(selectedGraphs) != 1:
+        sg.Popup('Error!', 'Select 1 graph for error parameters computation!')
+        return None
+
+def onReconstructSignal(window, values, storedSignals):
+    selectedGraphs = values['selectedGraphs']
+    if len(selectedGraphs) != 1:
+        sg.Popup('Error!', 'Select 1 graph to sample!')
+        return None
+
+    reconstructed = reconstruct(storedSignals[getSelectedGraphIndex(selectedGraphs[0])], params=values)
+    addToSelectionList(window, reconstructed, storedSignals)
+
 
 def onQuantizeSignal(window, values, storedSignals):
     selectedGraphs = values['selectedGraphs']
@@ -72,7 +89,7 @@ def onQuantizeSignal(window, values, storedSignals):
 def onSampleSignal(window, values, storedSignals):
     selectedGraphs = values['selectedGraphs']
     if len(selectedGraphs) != 1:
-        sg.Popup('Error!', 'Select 1 graph to quantize!')
+        sg.Popup('Error!', 'Select 1 graph to sample!')
         return None
 
     fp = try_float(values['samplingFrequency'])
@@ -87,7 +104,7 @@ def onSampleSignal(window, values, storedSignals):
 
 def onChangeReconstructMethod(window, values):
     sinc = values['Sinc?']
-    window.FindElement('sincPts').Update(disabled=not sinc, value='')
+    window.FindElement('sincNeighbors').Update(disabled=not sinc, value='')
 
 def onSignalProperties(window, selectedSignals, storedSignals):
     if(len(selectedSignals) != 1):
@@ -214,12 +231,21 @@ def onShowGraph(window, values, storedSignals):
             showexponent='all'
         )
     )
+
+
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
+
+        isCoercedToContinuous = None
+        try:
+            isCoercedToContinuous = graph['displayContinuous']
+        except KeyError:
+            isCoercedToContinuous = False 
+        
         data.append(go.Scatter(
             x=graph['x'],
             y=graph['y'],
-            mode="markers" if graph['isDiscrete'] else 'lines',
+            mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
         ))
 
     figure = go.Figure(data=data, layout=layout)

@@ -8,9 +8,12 @@ def quantize(signal, steps):
 
     quantizedSignalY = [minY + (round( (value - minY) / step) * step) for value in signal['y']]
 
+    
+
     return { 
         'name': signal['name'],
-        'displayName': f"quantized: s#={steps} - {signal['name']}", 
+        'displayName': f"quantized: s#={steps}({signal['displayName']})", 
+        'originalSignal': signal,
         'isDiscrete': True,
         'isPeriodic': False,
         'isComplex': False,

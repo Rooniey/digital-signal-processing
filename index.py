@@ -45,4 +45,8 @@ while True:
         gui.onQuantizeSignal(window, values, storedSignals)
     if event == 'sample': 
         gui.onSampleSignal(window, values, storedSignals)
+    if event == 'reconstruct':
+        gui.onReconstructSignal(window, values, storedSignals)
+    # if event == 'computeErrors':
+        # gui.onComputeErrorParameters(window, values, storedSignals)
 window.Close()
