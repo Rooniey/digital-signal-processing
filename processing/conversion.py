@@ -30,7 +30,7 @@ def reconstruct(signal, params):
         'displayContinuous': True,
         'isPeriodic': False,
         'x': x_values,
-        'y': y_values,
+        'y': y_values
     }
 
 
@@ -101,12 +101,12 @@ def extrapolationSinc(xValues, yValues, fe, n):
         potentialRightmost = oneStepBack + n
 
         leftmostPoint = potentialLeftmost if potentialLeftmost > - 1 else 0
-        rightmostPoint = potentialRightmost if potentialRightmost > tnmax else tnmax
+        rightmostPoint = potentialRightmost if potentialRightmost < tnmax else tnmax
 
         tmp = yValues[leftmostPoint:rightmostPoint]
         aggragate = 0
 
-        for index, value in enumerate(yValues):
+        for index, value in enumerate(tmp):
             aggragate += value * sinc( (t / T) - index)
 
         newYValues.append(aggragate)

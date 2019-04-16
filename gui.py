@@ -67,6 +67,15 @@ def onComputeErrorParameters(window, values, storedSignals):
 
     actualValuesForSignal = ops.computeSignal(selectedSignal, x)
 
+    #test
+    newSignal = {
+        **selectedSignal,
+        'displayName': f"computed: {selectedSignal['displayName']}",
+        'y': actualValuesForSignal
+    }
+    addToSelectionList(window, newSignal, storedSignals)
+    #test
+
     errors = calculateErrorStatistics(selectedSignal['y'], actualValuesForSignal)
     MSE, SNR, PSNR, MD, ENOB = pluck(errors, 'MSE', 'SNR', 'PSNR', 'MD', 'ENOB')
 
@@ -173,6 +182,7 @@ def initialize_inputs(window, initialSignalType):
     for field in allFields:
         if field not in initialSignal['fields']:
             window.FindElement(field).Update(disabled=True)
+    window.FindElement('sincNeighbors').Update(disabled=True)
 
 def onSignalTypeChange(window, signalType, prevSignalType):
     used = signals[signalType]['fields']  
