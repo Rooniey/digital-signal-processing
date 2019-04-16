@@ -23,15 +23,14 @@ def reconstruct(signal, params):
         methodName = 'sinc'
 
     return { 
+        **signal,
         'name': signal['name'],
         'displayName': f"reconstructed w/ {methodName} fe={params['fe']} ({signal['displayName']})", 
         'isDiscrete': True,
         'displayContinuous': True,
         'isPeriodic': False,
-        'isComplex': False,
         'x': x_values,
         'y': y_values,
-        'params': signal['params'] 
     }
 
 

@@ -65,7 +65,7 @@ def onComputeErrorParameters(window, values, storedSignals):
     selectedSignal = storedSignals[getSelectedGraphIndex(selectedGraphs[0])]
     name, x, y, params = pluck(selectedSignal, 'name', 'x', 'y', 'params')
 
-    actualValuesForSignal = signals[name]['fn'](x, params)
+    actualValuesForSignal = ops.computeSignal(selectedSignal, x)
 
     errors = calculateErrorStatistics(selectedSignal['y'], actualValuesForSignal)
     MSE, SNR, PSNR, MD, ENOB = pluck(errors, 'MSE', 'SNR', 'PSNR', 'MD', 'ENOB')
