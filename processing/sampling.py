@@ -1,5 +1,6 @@
 import numpy as np
 from constants import signals
+from operations import computeSignal
 
 def sample(signal, fp):
     maxX = max(signal['x'])
@@ -9,7 +10,7 @@ def sample(signal, fp):
     print(f"samplesCount: {samplesCount}")
 
     newX = np.linspace(signal['x'][0],  signal['x'][-1], samplesCount + 1) 
-    newY = signals[signal['name']]['fn'](newX, signal['params'])
+    newY = computeSignal(signal, newX)
 
     return { 
         'name': signal['name'],

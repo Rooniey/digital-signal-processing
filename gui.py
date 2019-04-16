@@ -91,7 +91,7 @@ def onComputeErrorParameters(window, values, storedSignals):
 def onReconstructSignal(window, values, storedSignals):
     selectedGraphs = values['selectedGraphs']
     if len(selectedGraphs) != 1:
-        sg.Popup('Error!', 'Select 1 graph to sample!')
+        sg.Popup('Error!', 'Select 1 graph to reconstruct!')
         return None
 
     reconstructed = reconstruct(storedSignals[getSelectedGraphIndex(selectedGraphs[0])], params=values)

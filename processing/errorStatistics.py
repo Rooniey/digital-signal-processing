@@ -33,6 +33,7 @@ def psnr(xPredicted, xActual, precomputedMSE = None):
 def snr(xPredicted, xActual):
     actualSquareSum = sum(list(map(lambda x: x**2, xActual)))
     squareDiffsSum = sum(list(map(lambda pair: (pair[1] - pair[0])**2, zip(xPredicted, xActual))))
+    print(f"p{xPredicted} a{xActual}")
     return 10 * log10(actualSquareSum/squareDiffsSum)
 
 def enob(snr):
