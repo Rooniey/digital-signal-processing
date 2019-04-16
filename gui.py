@@ -15,6 +15,8 @@ from signalGenerator import generate_signal
 from processing.quantization import quantize
 from processing.sampling import sample 
 from processing.conversion import reconstruct
+from processing.errorStatistics import calculateErrorStatistics
+from utility import pluck
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
@@ -59,6 +61,23 @@ def onComputeErrorParameters(window, values, storedSignals):
     if len(selectedGraphs) != 1:
         sg.Popup('Error!', 'Select 1 graph for error parameters computation!')
         return None
+
+    selectedSignal = storedSignals[getSelectedGraphIndex(selectedGraphs[0])]
+    name, x, y, params = pluck(selectedSignal, 'name', 'x', 'y', 'params')
+
+    actualValuesForSignal = signals[name]['fn'](x, params)
+
+    errors = calculateErrorStatistics(selectedSignal['y'], actualValuesForSignal)
+    MSE, SNR, PSNR, MD, ENOB = pluck(errors, 'MSE', 'SNR', 'PSNR', 'MD', 'ENOB')
+
+    sg.Popup('Signal properties', f"""
+        MSE: {MSE}
+        SNR: {SNR}
+        PSNR: {PSNR}
+        MD: {MD}
+        ENOB: {ENOB}
+        """)
+
 
 def onReconstructSignal(window, values, storedSignals):
     selectedGraphs = values['selectedGraphs']

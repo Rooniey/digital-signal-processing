@@ -7,13 +7,13 @@ def calculateErrorStatistics(xPredicted, xActual):
         raise Exception(f"To calculate mean squared error the same dimensions are needed {lenP} != {lenA}")
     
     varSnr = snr(xPredicted, xActual)
-    varMse = maxDifferenceError(xPredicted, xActual)
+    varMse = meanSquaredError(xPredicted, xActual)
     return {
-        "meanSquaredError": meanSquaredError(xPredicted, xActual),
-        "maxDifferent": varMse,
-        "psnr": psnr(xPredicted, xActual, varMse),
-        "snr": varSnr,
-        "enob": enob(snr)
+        "MSE": varMse,
+        "MD": maxDifferenceError(xPredicted, xActual),
+        "PSNR": psnr(xPredicted, xActual, varMse),
+        "SNR": varSnr,
+        "ENOB": enob(varSnr)
     }
 
 def meanSquaredError(xPredicted, xActual):
@@ -27,6 +27,7 @@ def maxDifferenceError(xPredicted, xActual):
 def psnr(xPredicted, xActual, precomputedMSE = None):
     maxActual = max(xActual)
     mse = precomputedMSE if precomputedMSE != None else meanSquaredError(xPredicted, xActual)
+    print(f"ma: {maxActual} mse: {mse}")
     return 10 * log10(maxActual/mse)
 
 def snr(xPredicted, xActual):
