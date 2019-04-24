@@ -95,6 +95,10 @@ def extrapolationSinc(xValues, yValues, fe, n):
     newYValues = []
 
     for t in tValues:
+        if t % T == 0:
+            newYValues.append(yValues[int(t/T)])
+            continue
+
         oneStepBack = floor( abs(t - t0) / T)
         
         potentialLeftmost = oneStepBack - (n - 1)
@@ -102,12 +106,11 @@ def extrapolationSinc(xValues, yValues, fe, n):
 
         leftmostPoint = potentialLeftmost if potentialLeftmost > - 1 else 0
         rightmostPoint = potentialRightmost if potentialRightmost < tnmax else tnmax
-
-        tmp = yValues[leftmostPoint:rightmostPoint]
+        tmp = yValues[leftmostPoint:rightmostPoint + 1]
         aggragate = 0
 
         for index, value in enumerate(tmp):
-            aggragate += value * sinc( (t / T) - index)
+            aggragate += value * sinc( (t / T) - (leftmostPoint + index))
 
         newYValues.append(aggragate)
     # newYValues = sinc_interp(yValues, xValues, tValues)
