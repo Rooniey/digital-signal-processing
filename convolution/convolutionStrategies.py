@@ -20,14 +20,5 @@ def naiveConvolve(x, h):
         res.append(aggr)
     return res
 
-h = [1, 2, 3, 4]
-X = [5, 6, 7]
-    
-
-
-print(naiveConvolve(X, h))
-
-
-
 
 
