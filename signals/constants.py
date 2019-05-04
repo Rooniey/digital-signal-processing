@@ -1,4 +1,4 @@
-import signalFunctions as sgen
+import signals.signalFunctions as sgen
 
 allFields = ['A', 't1', 'T', 'd', 'kw', 'fp', 'ts', 'p']
 noise_fields = ['A', 't1', 'd', 'fp']

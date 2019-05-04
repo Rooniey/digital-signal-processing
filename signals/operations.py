@@ -1,8 +1,8 @@
-from constants import signals
-from utility import pluck
+from signals.constants import signals
+from commons.utility import pluck
+from commons.signalList import getSelectedGraphIndex
 import PySimpleGUI as sg
 import numpy as np
-from helpers import getSelectedGraphIndex
 
 def extractSignalsForOperation(values, storedSignals):
     selectedGraphs = values['selectedGraphs']
@@ -53,27 +53,6 @@ def applyOperationSimple(operation, first, second):
     elif operation == "*":
         return multiplySignals(first,second)
 
-def computeSignal(signal, x_values):
-    if signal['isComplex'] == True:
-        operation, firstOperand, secondOperand = pluck(signal, 'operation', 'firstOperand', 'secondOperand')
-        LsigVal, RsigVal = None, None
-        if(firstOperand['isComplex']):
-            LsigVal = computeSignal(firstOperand, x_values)
-        else:
-            sigName = firstOperand['name']
-            LsigVal = signals[sigName]['fn'](x_values, firstOperand['params'])
-        
-        if(secondOperand['isComplex']):
-            RsigVal = computeSignal(secondOperand, x_values)
-        else:
-            sigName = secondOperand['name']
-            RsigVal = signals[sigName]['fn'](x_values, secondOperand['params'])
-
-        return applyOperationSimple(operation, LsigVal, RsigVal)
-    else:
-        sigName = signal['name']
-        return signals[sigName]['fn'](x_values, signal['params'])
-    
 # Operation on signals
 
 def subtractSignals(first, second):
