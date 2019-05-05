@@ -54,6 +54,11 @@ while True:
     if event == 'computeErrors':
         comp.converterComponent.onComputeErrorParameters(window, values, storedSignals)
 
+    if event == 'filter':
+        comp.convolutionComponent.onFilter(window, values, storedSignals)
+    if event == 'useK?':
+        comp.convolutionComponent.onFrequencyLimitParameterChange(window, values)
+
 window.Close()
 
 

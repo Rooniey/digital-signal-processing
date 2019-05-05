@@ -2,10 +2,10 @@ from numpy import convolve
 from scipy import signal
 
 def numpyConvolve(x, h):
-    return convolve(h, x)
+    return convolve(x, h)
 
 def scipyConvolve(x, h):
-    return signal.fftconvolve(h, x)
+    return signal.fftconvolve(x, h, mode = 'same')
 
 def naiveConvolve(x, h):
     paddingLength = (len(h)-1)

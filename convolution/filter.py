@@ -1,21 +1,25 @@
-import windowFunctions as wf
-import filterTypes as ft
-import convolutionStrategies as cs
-from filterCoefficient import transientResponse
+import convolution.windowFunctions as wf
+import convolution.filterTypes as ft
+import convolution.convolutionStrategies as cs
+from convolution.filterCoefficient import transientResponse
+
+import plotly.offline as py
+import plotly.graph_objs as go
+import numpy as np
 
 WINDOW_FUNCTIONS = ['rectangular', 'hamming', 'hanning', 'blackman']
-FILTER_TYPES = ['lowpass', 'bandpass', 'lowpass']
+FILTER_TYPES = ['lowpass', 'bandpass', 'highpass']
 
 def filterSignal(signal, filter, M, K, window):
     h = generateFilter(filter, M, K, window)
-    return cs.scipyConvolve(signal.y, h)
+    return cs.scipyConvolve(signal["y"], h)
 
 def generateFilter(filter, M, K, window):
     h = transientResponse(M, K)
-    
+
     if window != 'rectangular':
         w = getWindowFunction(window)
-        h = [coeff * w(n) for n, coeff in enumerate(h)]
+        h = [coeff * w(n, M) for n, coeff in enumerate(h)]
     
     if(filter != 'lowpass'):
         s = getFilterTypeMultiplierFunction(filter)

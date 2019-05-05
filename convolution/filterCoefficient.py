@@ -14,6 +14,6 @@ def filterCoefficient(n, M, K):
         return 2.0 / K
     else:
         n = n - mid
-        numerator = math.sin( (2 * math.pi *n) / K)
+        numerator = math.sin( (2 * math.pi * n) / K)
         denominator = math.pi * n
         return numerator / denominator

@@ -8,13 +8,12 @@ from processing.conversion import reconstruct
 from processing.quantization import quantize
 from processing.sampling import sample
 
+
 gui = [
-    [
         [sg.Button('Sample', key='sample', size=(10, 1)), sg.Text('Fp', size=(7, 1)), sg.Input(key='samplingFrequency', size=(10, 10), do_not_clear=True)],
         [sg.Button('Quantize', key='quantize', size=(10, 1)), sg.Text('Levels', size=(7, 1)), sg.Input(key='quantizationSteps', size=(10, 10), do_not_clear=True)],
         [sg.Button('Reconstruct', size=(10, 1), key='reconstruct'), sg.Text('Fe', size=(7, 1)),  sg.Input(key='fe', size=(10, 10), do_not_clear=True), sg.Checkbox('Sinc?', enable_events=True, change_submits=True, key='Sinc?'), sg.Text('Neighbors', size=(7, 1)), sg.Input(key='sincNeighbors', size=(10, 10), do_not_clear=True)],
-        [sg.Button('Compute error parameters', key='computeErrors', size=(30,10), pad=(100,100))],  
-    ]
+        [sg.Button('Compute error parameters', key='computeErrors', size=(30,1))],  
 ]
 
 def onComputeErrorParameters(window, values, storedSignals):
