@@ -14,4 +14,9 @@ column2 = sg.Column([
     *convolutionComponent.gui
 ])
 
-layout = [[column1, column2]]
+
+tab1_layout = [[column1, column2]]
+
+tab2_layout = [[sg.T('Szujka superczujka')]]
+
+layout = [[sg.TabGroup([[sg.Tab('Signal processing', tab1_layout), sg.Tab('Simulator', tab2_layout)]])]]
