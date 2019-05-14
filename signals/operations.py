@@ -66,3 +66,50 @@ def multiplySignals(first, second):
 
 def divideSignals(first, second):
     return [a / b if b != 0 else 0 for a, b in zip(first, second)]
+
+def calculateSpectrum(signal):
+    xSet = signal["x"]
+    ySet = signal["y"]
+    signalType = signal["name"]
+
+    ps = np.abs(np.fft.fft(ySet))**2
+    time_step = xSet[1] - xSet[0]
+    freqs = np.fft.fftfreq(len(ySet), time_step)
+    idx = np.argsort(freqs)
+    freqx = [0] * len(freqs)
+    psy = [0] * len(ps)
+
+    for cos in idx:
+        freqx[cos] = freqs[cos]
+        psy[cos] = ps[cos]
+
+    return  {
+        'name':signalType,
+        'displayName': 'spectrum' + signalType, 
+        'isDiscrete': True,
+        'isPeriodic': False,
+        'isComplex': False,
+        'x': freqx, 
+        'y': psy,
+        'params': {
+            "t1": 0,
+            "fp": 200
+        }
+    }
+
+def calculateFilterTransmittance(inputSignal, outputSignal):
+    inputSignalSpectrum = calculateSpectrum(inputSignal)
+    outputSignalSpectrun = calculateSpectrum(outputSignal)
+    return {
+        'name': "filter transmittance",
+        'displayName': f"filter transmittance",
+        'isDiscrete': False,
+        'isComplex': False,
+        'isPeriodic': False,
+        'x': inputSignalSpectrum["x"],
+        'y': divideSignals(outputSignalSpectrun["y"], inputSignalSpectrum["y"]),
+        "params": {
+            "t1": 0,
+            "fp": 200
+        }
+    }

@@ -36,6 +36,8 @@ while True:
         comp.signalComponent.onMultiplySignals(window, values, storedSignals)
     if event == '/':
         comp.signalComponent.onDivideSignals(window, values, storedSignals)
+    if event == "generateSpectrum":
+        comp.signalComponent.onGenerateSpectrum(window, values["selectedGraphs"], storedSignals)
     
     if event == 'saveFile':
         comp.fileOperationsComponent.saveFile(window, values, storedSignals)

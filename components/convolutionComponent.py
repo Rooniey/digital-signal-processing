@@ -3,6 +3,8 @@ from commons.validators import try_int, try_float
 from commons.signalList import getSelectedGraphIndex, addToSelectionList
 from convolution.filter import FILTER_TYPES, WINDOW_FUNCTIONS
 from convolution.filter import filterSignal
+from signals import operations
+import numpy as np
 
 frameLayout = [
     [   
@@ -50,18 +52,37 @@ def onFilter(window, values, storedSignals):
     if not values["useK?"]:
         params["K"] = selectedSignal["params"]["fp"] / params["K"]
 
+    
+
+    filter, filteredSignal = filterSignal(selectedSignal, **params)
+
     filteredSignal = {
         'name': selectedSignal["name"],
         'displayName': f"filtered {selectedSignal['displayName']}",
-        'isDiscrete': True,
+        'isDiscrete': False,
         'isComplex': False,
         'isPeriodic': False,
         'x': selectedSignal["x"],
-        'y': filterSignal(selectedSignal, **params),
+        'y': filteredSignal,
+        "params": selectedSignal['params']
+    }
+
+    filterTransmittance = operations.calculateFilterTransmittance(selectedSignal, filteredSignal)
+
+    impulseResponse = {
+        'name': selectedSignal["name"],
+        'displayName': f"filter",
+        'isDiscrete': False,
+        'isComplex': False,
+        'isPeriodic': False,
+        'x': np.linspace(0, len(filter) - 1, len(filter)),
+        'y': filter,
         "params": selectedSignal['params']
     }
     
     addToSelectionList(window, filteredSignal, storedSignals)
+    addToSelectionList(window, impulseResponse, storedSignals)
+    addToSelectionList(window, filterTransmittance, storedSignals)
 
 def assembleFilterParams(values):
     errors = ""

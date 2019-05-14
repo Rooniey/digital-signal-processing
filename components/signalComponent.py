@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 import plotly.offline as py
 import plotly.graph_objs as go
 import signals.operations as ops
+import numpy as np
 from signals.constants import signals, allFields
 from signals.signalGenerator import generate_signal
 from signals.statistics import calculateStatistics
@@ -16,6 +17,7 @@ gui = [
     [
         sg.Button('Generate signal', key="generateSignal"), 
         sg.Button('Show', key="showSignal"), 
+        sg.Button('GenerateSpectrum', key="generateSpectrum")
     ],
     [
         sg.Button('Histogram', key="showHistogram"),
@@ -62,7 +64,7 @@ def onGenerateSignal(window, values, storedSignals):
         return
 
     xSet, ySet = generate_signal(signalType, param_values)
-
+    
     newSignal = { 
         'name':signalType,
         'displayName': signalType, 
@@ -210,3 +212,12 @@ def removeFromSelectionList(window, selectedToRemove, storedSignals):
         currentList.append(f"{i}. {storedSignals[i]['displayName']} {storedSignals[i]['params']}")
 
       selectionList.Update(currentList)
+
+def onGenerateSpectrum(window, selectedSignals, storedSignals):
+    if(len(selectedSignals) != 1):
+        sg.Popup('Error!', "Select single signal")
+    else:
+        selectedSignal = storedSignals[getSelectedGraphIndex(selectedSignals[0])]
+        spectrum = ops.calculateSpectrum(selectedSignal)
+        addToSelectionList(window, spectrum, storedSignals)
+        

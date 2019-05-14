@@ -12,7 +12,7 @@ FILTER_TYPES = ['lowpass', 'bandpass', 'highpass']
 
 def filterSignal(signal, filter, M, K, window):
     h = generateFilter(filter, M, K, window)
-    return cs.scipyConvolve(signal["y"], h)
+    return (h, cs.scipyConvolve(signal["y"], h))
 
 def generateFilter(filter, M, K, window):
     h = transientResponse(M, K)

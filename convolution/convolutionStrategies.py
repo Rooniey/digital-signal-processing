@@ -5,7 +5,7 @@ def numpyConvolve(x, h):
     return convolve(x, h)
 
 def scipyConvolve(x, h):
-    return signal.fftconvolve(x, h, mode = 'same')
+    return signal.fftconvolve(x, h, mode='same')
 
 def naiveConvolve(x, h):
     paddingLength = (len(h)-1)
