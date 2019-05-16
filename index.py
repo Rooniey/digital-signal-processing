@@ -61,6 +61,9 @@ while True:
     if event == 'useK?':
         comp.convolutionComponent.onFrequencyLimitParameterChange(window, values)
 
+    if event == 'simulate':
+        comp.sensorComponent.onSimulate(window, values, storedSignals)
+
 window.Close()
 
 
