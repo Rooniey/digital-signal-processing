@@ -1,8 +1,8 @@
-import convolutionStrategies as cs
+import convolution.convolutionStrategies as cs
 
 def convCorrelation(x, h):
     reversedH = h[::-1]
-    return cs.naiveConvolve(x, reversedH)
+    return cs.numpyConvolve(x, reversedH)
 
 def correlation(x, h):
     paddingLength = (len(h)-1)

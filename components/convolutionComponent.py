@@ -35,6 +35,8 @@ frameLayout = [
 
 gui = [
     [sg.Frame("Filter designer", layout=frameLayout, size=(100, 50))],
+    [sg.Text("Convolution strategy "), sg.InputCombo(values=['naive', 'numpy', 'fft'], change_submits=True, key="convolution_strategy", readonly=True)],
+    [sg.Text("Correlation strategy "), sg.InputCombo(values=['normal', 'conv_proxy'], change_submits=True, key="correlation_strategy", readonly=True)]
 ]
 
 def onFilter(window, values, storedSignals):

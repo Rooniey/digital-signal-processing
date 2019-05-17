@@ -64,6 +64,11 @@ while True:
     if event == 'simulate':
         comp.sensorComponent.onSimulate(window, values, storedSignals)
 
+    if event == 'op_convolve':
+        comp.sensorComponent.onConvolveSignals(window, values, storedSignals)
+    if event == 'op_correlate':
+        comp.sensorComponent.onCorrelateSignals(window, values, storedSignals)
+
 window.Close()
 
 

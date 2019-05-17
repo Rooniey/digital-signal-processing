@@ -29,8 +29,43 @@ gui = [
         sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(60, 10), key="selectedGraphs"), 
         sg.Button('Remove signal/s', key='removeSignal'), 
     ],
-    [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/')]
+    [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/'), sg.Button('Convolve', key='op_convolve'), sg.Button('Correlate', key='op_correlate')]
 ]
+
+plotly_layout = go.Layout(
+        xaxis=dict(
+            title='t[s]',
+            titlefont=dict(
+                family='Arial, sans-serif',
+                size=18,
+                color='lightgrey'
+            ),
+            showticklabels=True,
+            tickfont=dict(
+                family='Old Standard TT, serif',
+                size=14,
+                color='black'
+            ),
+            exponentformat='e',
+            showexponent='all'
+        ),
+        yaxis=dict(
+            title='A[m]',
+            titlefont=dict(
+                family='Arial, sans-serif',
+                size=18,
+                color='lightgrey'
+            ),
+            showticklabels=True,
+            tickfont=dict(
+                family='Old Standard TT, serif',
+                size=14,
+                color='black'
+            ),
+            exponentformat='e',
+            showexponent='all'
+        )
+    )
 
 def initialize_inputs(window, initialSignalType):
     initialSignal = signals[initialSignalType]
@@ -127,40 +162,7 @@ def onShowGraph(window, values, storedSignals):
         return
     selectedGraphs = values["selectedGraphs"]
     data = []
-    layout = go.Layout(
-        xaxis=dict(
-            title='t[s]',
-            titlefont=dict(
-                family='Arial, sans-serif',
-                size=18,
-                color='lightgrey'
-            ),
-            showticklabels=True,
-            tickfont=dict(
-                family='Old Standard TT, serif',
-                size=14,
-                color='black'
-            ),
-            exponentformat='e',
-            showexponent='all'
-        ),
-        yaxis=dict(
-            title='A[m]',
-            titlefont=dict(
-                family='Arial, sans-serif',
-                size=18,
-                color='lightgrey'
-            ),
-            showticklabels=True,
-            tickfont=dict(
-                family='Old Standard TT, serif',
-                size=14,
-                color='black'
-            ),
-            exponentformat='e',
-            showexponent='all'
-        )
-    )
+    layout = plotly_layout
 
 
     for x in selectedGraphs:

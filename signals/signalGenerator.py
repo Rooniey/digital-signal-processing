@@ -12,6 +12,19 @@ def generate_signal(signalType, param_values):
     y_values = signals[signalType]['fn'](x_values, param_values)
     return [x_values, y_values]
 
+def create_signal_with_metadata(signalType, param_values):
+    xSet, ySet = generate_signal(signalType, param_values)
+    return { 
+        'name':signalType,
+        'displayName': signalType, 
+        'isDiscrete': signals[signalType]['isDiscrete'],
+        'isPeriodic': signals[signalType]['isPeriodic'],
+        'isComplex': False,
+        'x': xSet, 
+        'y': ySet, 
+        'params': param_values 
+    }
+
 # Signal computation
 def computeSignal(signal, x_values):
     if signal['isComplex'] == True:
