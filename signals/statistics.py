@@ -1,5 +1,5 @@
-from operations import computeSignal
-from utility import pluck
+from signals.signalGenerator import computeSignal
+from commons.utility import pluck
 import numpy as np
 import math
 

@@ -1,6 +1,6 @@
 from numpy import linspace, sinc, tile, dot, newaxis
 from math import floor
-from validators import try_float, try_int
+from commons.validators import try_float, try_int
 import PySimpleGUI as sg
 
 def reconstruct(signal, params):

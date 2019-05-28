@@ -1,8 +1,8 @@
-from constants import signals
-from utility import pluck
+from signals.constants import signals
+from commons.utility import pluck
+from commons.signalList import getSelectedGraphIndex
 import PySimpleGUI as sg
 import numpy as np
-from helpers import getSelectedGraphIndex
 
 def extractSignalsForOperation(values, storedSignals):
     selectedGraphs = values['selectedGraphs']
@@ -53,27 +53,6 @@ def applyOperationSimple(operation, first, second):
     elif operation == "*":
         return multiplySignals(first,second)
 
-def computeSignal(signal, x_values):
-    if signal['isComplex'] == True:
-        operation, firstOperand, secondOperand = pluck(signal, 'operation', 'firstOperand', 'secondOperand')
-        LsigVal, RsigVal = None, None
-        if(firstOperand['isComplex']):
-            LsigVal = computeSignal(firstOperand, x_values)
-        else:
-            sigName = firstOperand['name']
-            LsigVal = signals[sigName]['fn'](x_values, firstOperand['params'])
-        
-        if(secondOperand['isComplex']):
-            RsigVal = computeSignal(secondOperand, x_values)
-        else:
-            sigName = secondOperand['name']
-            RsigVal = signals[sigName]['fn'](x_values, secondOperand['params'])
-
-        return applyOperationSimple(operation, LsigVal, RsigVal)
-    else:
-        sigName = signal['name']
-        return signals[sigName]['fn'](x_values, signal['params'])
-    
 # Operation on signals
 
 def subtractSignals(first, second):
@@ -87,3 +66,50 @@ def multiplySignals(first, second):
 
 def divideSignals(first, second):
     return [a / b if b != 0 else 0 for a, b in zip(first, second)]
+
+def calculateSpectrum(signal):
+    xSet = signal["x"]
+    ySet = signal["y"]
+    signalType = signal["name"]
+
+    ps = np.abs(np.fft.fft(ySet))**2
+    time_step = xSet[1] - xSet[0]
+    freqs = np.fft.fftfreq(len(ySet), time_step)
+    idx = np.argsort(freqs)
+    freqx = [0] * len(freqs)
+    psy = [0] * len(ps)
+
+    for cos in idx:
+        freqx[cos] = freqs[cos]
+        psy[cos] = ps[cos]
+
+    return  {
+        'name':signalType,
+        'displayName': 'spectrum' + signalType, 
+        'isDiscrete': True,
+        'isPeriodic': False,
+        'isComplex': False,
+        'x': freqx, 
+        'y': psy,
+        'params': {
+            "t1": 0,
+            "fp": 200
+        }
+    }
+
+def calculateFilterTransmittance(inputSignal, outputSignal):
+    inputSignalSpectrum = calculateSpectrum(inputSignal)
+    outputSignalSpectrun = calculateSpectrum(outputSignal)
+    return {
+        'name': "filter transmittance",
+        'displayName': f"filter transmittance",
+        'isDiscrete': False,
+        'isComplex': False,
+        'isPeriodic': False,
+        'x': inputSignalSpectrum["x"],
+        'y': divideSignals(outputSignalSpectrun["y"], inputSignalSpectrum["y"]),
+        "params": {
+            "t1": 0,
+            "fp": 200
+        }
+    }

@@ -1,6 +1,6 @@
 import numpy as np
-from constants import signals
-from operations import computeSignal
+from signals.constants import signals
+from signals.signalGenerator import computeSignal
 
 def sample(signal, fp):
     maxX = max(signal['x'])
