@@ -28,7 +28,7 @@ gui = [
         sg.Button('SignalProperties', key="showSignalProperties"),
     ],
     [
-        sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(60, 25), key="selectedGraphs"), 
+        sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(60, 22), key="selectedGraphs"), 
         sg.Button('Remove signal/s', key='removeSignal'), 
     ],
     [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/'), sg.Button('Convolve', key='op_convolve'), sg.Button('Correlate', key='op_correlate')]
@@ -180,20 +180,25 @@ def onShowGraph(window, values, storedSignals):
         ))
 
         if utility.try_get(graph, 'isIrrational'):
-            data.append(go.Scatter(
+            irrational_data.append(go.Scatter(
                 x=graph['ix'],
                 y=graph['iy'],
                 mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
             ))
 
     figure = tools.make_subplots(rows=2 if len(irrational_data) > 0 else 1, cols=1)
+    figure = tools.make_subplots(rows=1, cols=2)
+
+    
 
     for graph_obj in data:
         figure.append_trace(graph_obj, row=1, col=1)
     for graph_obj in irrational_data:
-        figure.append_trace(graph_obj, row=2, col=1)
+        figure.append_trace(graph_obj, row=1, col=2)
 
     figure['layout'] = layout
+
+    figure['layout'].update(height=600, width=800, title='i ❤ annotations and subplots')
     
     py.plot(figure, filename='graph')
 
