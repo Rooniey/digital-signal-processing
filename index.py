@@ -69,6 +69,9 @@ while True:
     if event == 'op_correlate':
         comp.sensorComponent.onCorrelateSignals(window, values, storedSignals)
 
+    if event == 'transform':
+        comp.transformationComponent.onTransformSignal(window, values, storedSignals)
+
 window.Close()
 
 

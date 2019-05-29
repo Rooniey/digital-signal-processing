@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+from plotly import tools
 import plotly.offline as py
 import plotly.graph_objs as go
 import signals.operations as ops
@@ -8,6 +9,7 @@ from signals.signalGenerator import generate_signal
 from signals.statistics import calculateStatistics
 from commons.signalList import getSelectedGraphIndex, addToSelectionList
 from commons.validators import validate_input
+import commons.utility as utility
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
@@ -26,7 +28,7 @@ gui = [
         sg.Button('SignalProperties', key="showSignalProperties"),
     ],
     [
-        sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(60, 10), key="selectedGraphs"), 
+        sg.Listbox(values=[], select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(60, 25), key="selectedGraphs"), 
         sg.Button('Remove signal/s', key='removeSignal'), 
     ],
     [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/'), sg.Button('Convolve', key='op_convolve'), sg.Button('Correlate', key='op_correlate')]
@@ -162,17 +164,14 @@ def onShowGraph(window, values, storedSignals):
         return
     selectedGraphs = values["selectedGraphs"]
     data = []
+    irrational_data = []
     layout = plotly_layout
 
 
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
 
-        isCoercedToContinuous = None
-        try:
-            isCoercedToContinuous = graph['displayContinuous']
-        except KeyError:
-            isCoercedToContinuous = False 
+        isCoercedToContinuous = utility.try_get(graph, 'displayContinuous')
         
         data.append(go.Scatter(
             x=graph['x'],
@@ -180,7 +179,21 @@ def onShowGraph(window, values, storedSignals):
             mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
         ))
 
-    figure = go.Figure(data=data, layout=layout)
+        if utility.try_get(graph, 'isIrrational'):
+            data.append(go.Scatter(
+                x=graph['ix'],
+                y=graph['iy'],
+                mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
+            ))
+
+    figure = tools.make_subplots(rows=2 if len(irrational_data) > 0 else 1, cols=1)
+
+    for graph_obj in data:
+        figure.append_trace(graph_obj, row=1, col=1)
+    for graph_obj in irrational_data:
+        figure.append_trace(graph_obj, row=2, col=1)
+
+    figure['layout'] = layout
     
     py.plot(figure, filename='graph')
 

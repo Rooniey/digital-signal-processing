@@ -4,6 +4,7 @@ import components.fileOperationsComponent as fileOperationsComponent
 import components.signalComponent as signalComponent
 import components.convolutionComponent as convolutionComponent
 import components.sensorComponent as sensorComponent
+import components.transformationComponent as transformationComponent
 
 
 column1 = sg.Column([
@@ -13,7 +14,8 @@ column1 = sg.Column([
 
 column2 = sg.Column([
     *converterComponent.gui,
-    *convolutionComponent.gui
+    *convolutionComponent.gui,
+    *transformationComponent.gui
 ])
 
 
