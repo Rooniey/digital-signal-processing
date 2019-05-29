@@ -14,19 +14,19 @@ def proxy(dftType, signal):
 	elif dftType == 'FFT':
 		result = FFT(y)
 	
-	xSet = list(range(len(result)))
-	return { 
+	xSet = [x * signal["params"]["fp"] / len(result) for x in range(len(result))]
+	return {
         'name': signal["name"],
         'displayName': 'transformated' + signal["displayName"], 
         'isDiscrete': True,
         'isPeriodic': False,
         'isComplex': False,
-        'x': xSet, 
+        'x': xSet,
         'y': [x.real for x in result], 
-        'params': signal["params"] ,
-		'isIrrational': True,
-		'ix': xSet,
-		'iy': [x.imag for x in result]
+        'params': signal["params"],
+        'isIrrational': True,
+        'ix': xSet,
+        'iy': [x.imag for x in result]
     }
 
 def dft(xs):

@@ -34,38 +34,43 @@ gui = [
     [sg.Button('+'), sg.Button('—'), sg.Button('*'), sg.Button('/'), sg.Button('Convolve', key='op_convolve'), sg.Button('Correlate', key='op_correlate')]
 ]
 
+base_axis_cfg = dict(
+    titlefont=dict(
+        family='Arial, sans-serif',
+        size=18,
+        color='lightgrey'
+    ),
+    showticklabels=True,
+    tickfont=dict(
+        family='Old Standard TT, serif',
+        size=14,
+        color='black'
+    ),
+    exponentformat='e',
+    showexponent='all'
+)
+
 plotly_layout = go.Layout(
         xaxis=dict(
             title='t[s]',
-            titlefont=dict(
-                family='Arial, sans-serif',
-                size=18,
-                color='lightgrey'
-            ),
-            showticklabels=True,
-            tickfont=dict(
-                family='Old Standard TT, serif',
-                size=14,
-                color='black'
-            ),
-            exponentformat='e',
-            showexponent='all'
+            **base_axis_cfg,
+            # domain=[0, 0.45]
+        ),
+        xaxis2=dict(
+            title='t[s]',
+            **base_axis_cfg,
+            # domain=[0.55, 1],
+            anchor='y2'
         ),
         yaxis=dict(
             title='A[m]',
-            titlefont=dict(
-                family='Arial, sans-serif',
-                size=18,
-                color='lightgrey'
-            ),
-            showticklabels=True,
-            tickfont=dict(
-                family='Old Standard TT, serif',
-                size=14,
-                color='black'
-            ),
-            exponentformat='e',
-            showexponent='all'
+            **base_axis_cfg,
+            domain=[0, 0.45]
+        ),
+        yaxis2=dict(
+            title='A[m]',
+            **base_axis_cfg,
+            domain=[0.55, 1]
         )
     )
 
@@ -180,25 +185,28 @@ def onShowGraph(window, values, storedSignals):
         ))
 
         if utility.try_get(graph, 'isIrrational'):
-            irrational_data.append(go.Scatter(
+            data.append(go.Scatter(
                 x=graph['ix'],
                 y=graph['iy'],
+                xaxis='x2',
+                yaxis='y2',
                 mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
             ))
 
-    figure = tools.make_subplots(rows=2 if len(irrational_data) > 0 else 1, cols=1)
-    figure = tools.make_subplots(rows=1, cols=2)
+    # figure = tools.make_subplots(rows=2 if len(irrational_data) > 0 else 1, cols=1)
+    # figure = tools.make_subplots(rows=1, cols=2)
 
     
 
-    for graph_obj in data:
-        figure.append_trace(graph_obj, row=1, col=1)
-    for graph_obj in irrational_data:
-        figure.append_trace(graph_obj, row=1, col=2)
+    # for graph_obj in data:
+    #     figure.append_trace(graph_obj, row=1, col=1)
+    # for graph_obj in irrational_data:
+    #     figure.append_trace(graph_obj, row=1, col=2)
 
-    figure['layout'] = layout
+    # figure['layout'] = layout
+    # figure['layout'].update(height=600, width=800, title='i ❤ annotations and subplots')
 
-    figure['layout'].update(height=600, width=800, title='i ❤ annotations and subplots')
+    figure = go.Figure(data=data, layout=layout)
     
     py.plot(figure, filename='graph')
 

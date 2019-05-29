@@ -5,7 +5,13 @@ from signals import operations
 import transformation.transformationTypes as transform
 import numpy as np
 
+TRANSFORM_OPTIONS = ['FFT', 'DFT']
+
 frameLayout = [
+    [
+        sg.Text("Window function:", size=(15, 1)),
+        sg.InputCombo(values=TRANSFORM_OPTIONS, key="fourierTransformOptions", readonly=True, size=(15,1))
+    ],
     [
         sg.Button("Filter", key="transform")
     ]
@@ -22,6 +28,8 @@ def onTransformSignal(window, values, storedSignals):
         return None
     selectedSignal = storedSignals[getSelectedGraphIndex(selectedSignal[0])]
 
-    transformed = transform.proxy('DFT', selectedSignal)
+    selectedTransform = values['fourierTransformOptions']
+
+    transformed = transform.proxy(selectedTransform, selectedSignal)
 
     addToSelectionList(window, transformed, storedSignals)
