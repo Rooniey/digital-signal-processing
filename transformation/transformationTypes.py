@@ -16,8 +16,8 @@ def proxy(dftType, signal):
 	
 	xSet = [x * signal["params"]["fp"] / len(result) for x in range(len(result))]
 	return {
-        'name': signal["name"],
-        'displayName': 'transformated' + signal["displayName"], 
+        'name': 'transformated ' + signal["name"],
+        'displayName': 'transformated ' + signal["displayName"], 
         'isDiscrete': True,
         'isPeriodic': False,
         'isComplex': False,
