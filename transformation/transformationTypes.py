@@ -1,38 +1,43 @@
 from transformation.utility import iexp
 import convolution.convolutionStrategies as cs
-import math 
-import pywt 
-from cmath import exp, pi
+import math
+import time
+import pywt
 
-TYPES = ['DFT', 'FFT']
+def perform_transformation(transformation_type, signal):
 
-def proxy(dftType, signal):
-	result = None
-	y = signal["y"]
-	if dftType == 'DFT':
-		result = dft(y)
-	elif dftType == 'FFT':
-		result = FFT(y)
-	
-	xSet = [x * signal["params"]["fp"] / len(result) for x in range(len(result))]
-	return {
+    transformation_function = TRANSFORMATIONS[transformation_type]
+    y = signal["y"]
+
+    t_start = time.perf_counter()
+    result = transformation_function(y)
+    t_end = time.perf_counter()
+
+    elapsed = t_end - t_start
+
+    f0 = signal["params"]["fp"] / len(result)
+    x = [m * f0 for m in range(len(result))]
+
+    return ({
         'name': 'transformated ' + signal["name"],
-        'displayName': 'transformated ' + signal["displayName"], 
+        'displayName': 'transformated ' + signal["displayName"],
         'isDiscrete': True,
-        'isPeriodic': False,
-        'isComplex': False,
-        'x': xSet,
-        'y': [x.real for x in result], 
-        'params': signal["params"],
-        'isIrrational': True,
-        'ix': xSet,
-        'iy': [x.imag for x in result]
-    }
+            'isPeriodic': False,
+            'isComplex': False,
+            'x': x,
+            'y': [c.real for c in result],
+            'params': signal["params"],
+            'isIrrational': True,
+            'ix': x,
+            'iy': [c.imag for c in result]
+            }, elapsed)
+
 
 def dft(xs):
     N = len(xs)
     return [sum((xs[n] * iexp(-2 * math.pi * m * n / N) for n in range(N)))
-        for m in range(N)]
+            for m in range(N)]
+
 
 def dft_inv(xs):
     N = len(xs)
@@ -40,21 +45,21 @@ def dft_inv(xs):
             for m in range(N)]
 
 
-def FFT(X):
+def fft(X):
     n = len(X)
-    w = exp(-2*pi*1j/n)
     if n > 1:
-        X = FFT(X[::2]) + FFT(X[1::2])
+        X = fft(X[::2]) + fft(X[1::2])
         for k in range(n//2):
             xk = X[k]
-            X[k] = xk + w**k*X[k+n//2]
-            X[k+n//2] = xk - w**k*X[k+n//2]
+            kernel = iexp(-2*math.pi*k/n)
+            X[k] = xk + kernel*X[k+n//2]
+            X[k+n//2] = xk - kernel*X[k+n//2]
     return X
 
-random = [ 1 , 2 ,3 , 4]
-print(dft(random))
-print(FFT(random))
-
+TRANSFORMATIONS = {
+    'DFT': dft,
+    'FFT': fft
+}
 
 # denom = 4 * math.sqrt(2)
 # sqrt3 = math.sqrt(3)
@@ -83,10 +88,10 @@ print(FFT(random))
 # 		db4_(copy, n)
 # 		n = n // 2
 # 	return copy
-      
+
 
 # def db4_(a, n):
-# 	if n >= 4: 
+# 	if n >= 4:
 # 		half = n // 2
 # 		tmp = n * [0]
 
@@ -102,21 +107,6 @@ print(FFT(random))
 # 		for k in range(0, n):
 # 			a[k] = tmp[k]
 
-
-# # S = [1, 2, 3 ,4]
-# # N = length(S)
-# # s1 = S(1: 2: N-1) + sqrt(3)*S(2: 2: N)
-# # d1 = S(2: 2: N) - sqrt(3)/4*s1 - (sqrt(3)-2)/4*[s1(N/2); s1(1:N/2-1)]
-# # s2 = s1 - [d1(2:N/2);d1(1)]
-# # s = (sqrt(3)-1)/sqrt(2) * s2
-# # d = -(sqrt(3)+1)/sqrt(2) * d1
-
-# # print(s, d)
-
 # print(db4_kupa([1, 1, 4, 4, 0, 0, 1, 1]))
 # print(pywt.dwt([1, 1, 4, 4, 0, 0, 1, 1], 'db4', mode='periodization'))
 # print(db4([1, 1, 4, 4, 0, 0, 1, 1]))
-
-				
-	
-

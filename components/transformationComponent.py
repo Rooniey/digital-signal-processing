@@ -2,18 +2,18 @@ import PySimpleGUI as sg
 from commons.validators import try_int, try_float
 from commons.signalList import getSelectedGraphIndex, addToSelectionList
 from signals import operations
-import transformation.transformationTypes as transform
+import transformation.transformationTypes as tt
 import numpy as np
 
 TRANSFORM_OPTIONS = ['FFT', 'DFT']
 
 frameLayout = [
     [
-        sg.Text("Window function:", size=(15, 1)),
+        sg.Text("Transformation type:", size=(15, 1)),
         sg.InputCombo(values=TRANSFORM_OPTIONS, key="fourierTransformOptions", readonly=True, size=(15,1))
     ],
     [
-        sg.Button("Filter", key="transform")
+        sg.Button("Transform", key="transform")
     ]
 ]
 
@@ -24,12 +24,16 @@ gui = [
 def onTransformSignal(window, values, storedSignals):
     selectedSignal = values['selectedGraphs']
     if len(selectedSignal) != 1:
-        sg.Popup('Error!', 'Select 1 graph to filter!')
+        sg.Popup('Error!', 'Select 1 graph to perform transformation!')
         return None
     selectedSignal = storedSignals[getSelectedGraphIndex(selectedSignal[0])]
 
     selectedTransform = values['fourierTransformOptions']
 
-    transformed = transform.proxy(selectedTransform, selectedSignal)
+    (result, elapsed)  = tt.perform_transformation(selectedTransform, selectedSignal)
 
-    addToSelectionList(window, transformed, storedSignals)
+    addToSelectionList(window, result, storedSignals)
+
+    sg.Popup('Performance', f"Time elapsed: {elapsed}s")
+
+
