@@ -10,6 +10,7 @@ from signals.statistics import calculateStatistics
 from commons.signalList import getSelectedGraphIndex, addToSelectionList
 from commons.validators import validate_input
 import commons.utility as utility
+import cmath
 
 inputFields = map(lambda fieldName: [sg.Text(fieldName, size=(3, 1)), sg.InputText(key=fieldName, do_not_clear=True)], allFields)
 
@@ -19,6 +20,7 @@ gui = [
     [
         sg.Button('Generate signal', key="generateSignal"), 
         sg.Button('Show', key="showSignal"), 
+        sg.Checkbox('alternative view mode', key='viewMode'),
         sg.Button('GenerateSpectrum', key="generateSpectrum")
     ],
     [
@@ -50,25 +52,34 @@ base_axis_cfg = dict(
     showexponent='all'
 )
 
-plotly_layout = go.Layout(
+single_graph_layout = go.Layout(
+    xaxis=dict(
+        title='x',
+        **base_axis_cfg,
+    ),
+    yaxis=dict(
+        title='y',
+        **base_axis_cfg,
+    ),
+)
+
+double_graph_layout = go.Layout(
         xaxis=dict(
-            title='t[s]',
+            title='x',
             **base_axis_cfg,
-            # domain=[0, 0.45]
         ),
         xaxis2=dict(
-            title='t[s]',
+            title='x',
             **base_axis_cfg,
-            # domain=[0.55, 1],
             anchor='y2'
         ),
         yaxis=dict(
-            title='A[m]',
+            title='y',
             **base_axis_cfg,
             domain=[0, 0.45]
         ),
         yaxis2=dict(
-            title='A[m]',
+            title='y',
             **base_axis_cfg,
             domain=[0.55, 1]
         )
@@ -164,47 +175,61 @@ def onDivideSignals(window, values, storedSignals):
 
 
 def onShowGraph(window, values, storedSignals):
-    if(len(values['selectedGraphs']) == 0):
+    selectedGraphs = values["selectedGraphs"]
+    if(len(selectedGraphs) == 0):
         sg.Popup('Error!', "Select at least one signal")
         return
-    selectedGraphs = values["selectedGraphs"]
+    
+    layout = single_graph_layout
     data = []
-    irrational_data = []
-    layout = plotly_layout
-
 
     for x in selectedGraphs:
         graph = storedSignals[getSelectedGraphIndex(x)]
 
         isCoercedToContinuous = utility.try_get(graph, 'displayContinuous')
-        
-        data.append(go.Scatter(
-            x=graph['x'],
-            y=graph['y'],
-            mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
-        ))
 
         if utility.try_get(graph, 'isIrrational'):
+            layout = double_graph_layout
+            if(values["viewMode"]):
+                data = []
+                irrational = [complex(re, im) for re, im in zip(graph['y'], graph['iy'])]
+                data.append(go.Scatter(
+                    x=graph['x'],
+                    y=[abs(x) for x in irrational],
+                    xaxis='x1',
+                    yaxis='y1',
+                    mode='lines',
+                    name='Modulo'
+                ))
+
+                data.append(go.Scatter(
+                    x=graph['x'],
+                    y=[cmath.phase(x) for x in irrational],
+                    xaxis='x2',
+                    yaxis='y2',
+                    name='Argument',
+                ))
+            else:
+                data.append(go.Scatter(
+                    x=graph['x'],
+                    y=graph['y'],
+                    mode="markers",
+                    name="Real part"
+                ))
+                data.append(go.Scatter(
+                    x=graph['ix'],
+                    y=graph['iy'],
+                    xaxis='x2',
+                    yaxis='y2',
+                    mode="markers",
+                    name="Irrational part"
+                ))
+        else:
             data.append(go.Scatter(
-                x=graph['ix'],
-                y=graph['iy'],
-                xaxis='x2',
-                yaxis='y2',
+                x=graph['x'],
+                y=graph['y'],
                 mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
             ))
-
-    # figure = tools.make_subplots(rows=2 if len(irrational_data) > 0 else 1, cols=1)
-    # figure = tools.make_subplots(rows=1, cols=2)
-
-    
-
-    # for graph_obj in data:
-    #     figure.append_trace(graph_obj, row=1, col=1)
-    # for graph_obj in irrational_data:
-    #     figure.append_trace(graph_obj, row=1, col=2)
-
-    # figure['layout'] = layout
-    # figure['layout'].update(height=600, width=800, title='i ❤ annotations and subplots')
 
     figure = go.Figure(data=data, layout=layout)
     

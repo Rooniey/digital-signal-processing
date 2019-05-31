@@ -5,7 +5,7 @@ from signals import operations
 import transformation.transformationTypes as tt
 import numpy as np
 
-TRANSFORM_OPTIONS = ['FFT', 'DFT']
+TRANSFORM_OPTIONS = ['FFT', 'DFT', 'DB4']
 
 frameLayout = [
     [
@@ -32,7 +32,8 @@ def onTransformSignal(window, values, storedSignals):
 
     (result, elapsed)  = tt.perform_transformation(selectedTransform, selectedSignal)
 
-    addToSelectionList(window, result, storedSignals)
+    for signal in result:
+        addToSelectionList(window, signal, storedSignals)
 
     sg.Popup('Performance', f"Time elapsed: {elapsed}s")
 
