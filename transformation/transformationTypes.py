@@ -1,4 +1,5 @@
 from transformation.utility import iexp
+from commons.utility import try_get
 import convolution.convolutionStrategies as cs
 import math
 import time
@@ -8,7 +9,7 @@ import numpy as np
 def perform_transformation(transformation_type, signal):
 
     transformation_function = TRANSFORMATIONS[transformation_type]
-    y = signal["y"]
+    y = signal["y"] if not try_get(signal, "isIrrational") else [complex(signal["y"][i], signal["iy"][i]) for i in range(len(signal["x"]))]
 
     t_start = time.perf_counter()
     transformation_result = transformation_function(y)
@@ -43,6 +44,18 @@ def perform_transformation(transformation_type, signal):
             'y': x2,
             'params': signal["params"],
         })
+    elif transformation_type == 'INV_DFT':
+        returned_signals.append({
+            'name': f"inv transformated {transformation_type} " + signal["name"],
+            'displayName': f"inv transformated {transformation_type} " + signal["displayName"],
+            'isDiscrete': False,
+            'isPeriodic': False,
+            'isComplex': False,
+            'x': signal["time_domain"],
+            'y': [c.real for c in transformation_result],
+            'params': signal["params"],
+            'isIrrational': False
+        })
     else:
         f0 = signal["params"]["fp"] / signal["params"]["n"]
         x = [m * f0 for m in range(len(transformation_result))]
@@ -57,17 +70,30 @@ def perform_transformation(transformation_type, signal):
             'params': signal["params"],
             'isIrrational': True,
             'ix': x,
-            'iy': [c.imag for c in transformation_result]
+            'iy': [c.imag for c in transformation_result],
+            'time_domain': signal["x"]
         })
 
     return (returned_signals, elapsed)
 
 
 def dft(xs):
-    N = len(xs)
-    return [sum((xs[n] * iexp(-2 * math.pi * m * n / N) for n in range(N)))
-            for m in range(N)]
+    N = np.size(xs)
+    X = np.zeros((N,), dtype=np.complex128)
+    for m in range(0, N):
+        for n in range(0, N):
+            X[m] += xs[n]*np.exp(-np.pi*2j*m*n/N)
+    return X
 
+def dft_inv(xs):
+    N = np.size(xs)
+    X = np.zeros((N,), dtype=np.complex128)
+    for m in range(0, N):
+        for n in range(0, N):
+            X[m] += xs[n]*np.exp(np.pi*2j*m*n/N)
+    return X/N
+
+# recursive version of fast fourier transform
 def fft(X):
     N = len(X)
     half = N // 2
@@ -81,7 +107,7 @@ def fft(X):
             X[k+half] = xk - c
     return X
 
-
+# vectorized version of fast fourier transform
 def fft_vectorized(x):
     x = np.asarray(x, dtype=float)
     N = x.shape[0]
@@ -97,8 +123,8 @@ def fft_vectorized(x):
     X = np.dot(M, x.reshape((N_min, -1)))
 
     while X.shape[0] < N:
-        X_even = X[:, :X.shape[1] / 2]
-        X_odd = X[:, X.shape[1] / 2:]
+        X_even = X[:, :X.shape[1] // 2]
+        X_odd = X[:, X.shape[1] // 2:]
         factor = np.exp(-1j * np.pi * np.arange(X.shape[0])/ X.shape[0])[:, None]
         X = np.vstack([X_even + factor * X_odd,
                        X_even - factor * X_odd])
@@ -121,41 +147,8 @@ def db4(xs):
 
 TRANSFORMATIONS = {
     'DFT': dft,
+    'INV_DFT': dft_inv,
     'FFT': fft,
+    'FFT_VECT': fft_vectorized,
     'DB4': db4
 }
-
-
-def db4_out(xs):
-	N = len(xs)
-	copy = xs[:]
-	n = N
-	while(n >= 4):
-		db4_out_(copy, n)
-		n = n // 2
-	return copy
-
-
-def db4_out_(a, n):
-	if n >= 4:
-		half = n // 2
-		tmp = n * [0]
-
-		i = 0
-		for  j in range(0, n - 3, 2):
-			tmp[i]      = a[j]*h[0] + a[j+1]*h[1] + a[j+2]*h[2] + a[j+3]*h[3]
-			tmp[i+half] = a[j]*g[0] + a[j+1]*g[1] + a[j+2]*g[2] + a[j+3]*g[3]
-			i+=1
-
-		tmp[i]      = a[n-2]*h[0] + a[n-1]*h[1] + a[0]*h[2] + a[1]*h[3]
-		tmp[i+half] = a[n-2]*g[0] + a[n-1]*g[1] + a[0]*g[2] + a[1]*g[3]
-
-		for k in range(0, n):
-			a[k] = tmp[k]
-
-
-# test = [1, 2, 3, 4]
-
-# print(db4_own(test))
-# print(pywt.dwt(test, 'db4', mode='periodization'))
-# print(db4(test))

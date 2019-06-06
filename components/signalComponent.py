@@ -76,12 +76,12 @@ double_graph_layout = go.Layout(
         yaxis=dict(
             title='y',
             **base_axis_cfg,
-            domain=[0, 0.45]
+            domain=[0.55, 1]
         ),
         yaxis2=dict(
             title='y',
             **base_axis_cfg,
-            domain=[0.55, 1]
+            domain=[0, 0.45]
         )
     )
 
@@ -229,6 +229,7 @@ def onShowGraph(window, values, storedSignals):
                 x=graph['x'],
                 y=graph['y'],
                 mode="markers" if graph['isDiscrete'] and not isCoercedToContinuous else 'lines',
+                name=graph["displayName"][0:21]
             ))
 
     figure = go.Figure(data=data, layout=layout)

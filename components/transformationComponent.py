@@ -5,7 +5,7 @@ from signals import operations
 import transformation.transformationTypes as tt
 import numpy as np
 
-TRANSFORM_OPTIONS = ['FFT', 'DFT', 'DB4']
+TRANSFORM_OPTIONS = ['DFT', 'INV_DFT', 'FFT', 'FFT_VECT', 'DB4']
 
 frameLayout = [
     [
